@@ -1,0 +1,15 @@
+#! /bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "usage: monitor-pings NOTIFICATION_SERVICE"
+    exit 1
+fi
+
+[ -e /etc/admin-notifier/monitor-pings.list ] && PING_LIST=$(cat /etc/admin-notifier/monitor-pings.list)
+
+for TARGET in ${PING_LIST}; do
+    ping -c1 ${TARGET} > /dev/null
+    if [ $? -ne 0 ]; then
+        /usr/local/bin/admin-notifier $1 PingServerError "${TARGET}" ping "${TARGET} does not respond"
+    fi
+done

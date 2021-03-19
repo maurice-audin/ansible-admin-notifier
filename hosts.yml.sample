@@ -1,0 +1,23 @@
+admin-notifier:
+  hosts:
+    server1:
+      hw_raid:           True
+      monitor_snapshots: True
+    server2:
+      sw_raid:           True
+      monitor_pings:     all
+      monitor_urls:
+        - localhost;http://127.0.0.1
+        - gitlab;http://gitlab.home.lan/users/sign_in
+    server3:
+      sw_raid:           True
+      monitor_ping:
+        - server2
+    laptop:
+      is_x1:             True
+      monitor_ping:      False
+  vars:
+    alerta_url:     http://alerta.home.lan
+    alerta_key:     my_alerta_key
+    pushover_token: my_pushover_token
+    pushover_user:  my_pushover_user

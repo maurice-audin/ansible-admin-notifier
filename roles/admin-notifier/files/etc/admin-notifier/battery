@@ -1,0 +1,14 @@
+#! /bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "usage: battery NOTIFICATION_SERVICE"
+    exit 1
+fi
+
+battery=$(acpi 2> /dev/null | awk '{if ($3 == "Discharging," && substr($4, 0, length($4) - 2) + 0 < 10) print substr($4, 0, length($4) - 1)}')
+
+if [ "x${battery}" = "x" ]; then
+    exit 0
+fi
+
+/usr/local/bin/admin-notifier $1 BatteryCritical $(hostname) battery "Battery at ${battery}"

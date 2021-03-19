@@ -1,0 +1,6 @@
+---
+
+- hosts: admin-notifier
+  roles:
+    - role: admin-notifier
+      tags: admin-notifier

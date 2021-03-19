@@ -1,0 +1,22 @@
+#! /bin/bash
+
+if [ $# -ne 5 ]; then
+    echo "usage: admin-notifier NOTIFICATION_SERVICE EVENT RESOURCE SERVICE MESSAGE"
+    exit 1
+fi
+
+NOTIFICATION_SERVICE=$1
+shift
+
+case ${NOTIFICATION_SERVICE} in
+    alerta)
+        /usr/local/bin/alerta-notify "$1" "$2" "$3" "$4"
+        ;;
+    pushover)
+        /usr/local/bin/pushover-notify "$1" "$2" "$3" "$4"
+        ;;
+    *)
+        echo "Error: Unrecognized notification service ${NOTIFICATION_SERVICE}"
+        exit 2
+        ;;
+esac

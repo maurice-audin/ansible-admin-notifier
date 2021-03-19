@@ -1,0 +1,48 @@
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+
+{% if pushover_token is defined and pushover_user is defined %}
+# Check apt new packages
+0 10 * * * root /etc/admin-notifier/apt pushover
+
+# Check loaded kernel
+12 0 * * * root /etc/admin-notifier/kernel pushover
+
+{% if is_x1|default(False) %}
+# Check battery level
+*/15 * * * * root /etc/admin-notifier/battery alerta
+
+{% endif %}
+{% endif %}
+# Check temperature level
+*/10 * * * * root /etc/admin-notifier/temperature alerta
+
+# Check disk usage
+*/15 * * * * root /etc/admin-notifier/diskspace alerta
+
+{% if sw_raid|default(False) %}
+# Check soft raid arrays
+0 * * * * root /etc/admin-notifier/mdadm alerta
+
+{% endif %}
+{% if hw_raid|default(False) %}
+# Check hard raid arrays
+0 * * * * root /etc/admin-notifier/megacli alerta
+
+{% endif %}
+# Check systemd failed units
+*/15 * * * * root /etc/admin-notifier/systemd alerta
+
+{% if monitor_urls is defined %}
+# Check on websites list every 10 minutes
+*/10 * * * * root /etc/admin-notifier/monitor-urls alerta
+
+{% endif %}
+{% if monitor_pings is defined %}
+# Check pings every 5 minutes
+*/5 * * * * root /etc/admin-notifier/monitor-pings alerta
+
+{% endif%}
+{% if monitor_snapshots is defined %}
+# Check snapshots every day at 4:00
+0 4 * * * root /etc/admin-notifier/monitor-snapshots alerta
+{% endif %}

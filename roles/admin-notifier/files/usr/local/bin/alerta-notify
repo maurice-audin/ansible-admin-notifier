@@ -1,0 +1,31 @@
+#! /bin/bash
+
+source /etc/default/admin-notifier
+
+if [ -z "${ALERTA_URL}" ] || [ -z "${ALERTA_KEY}" ]; then
+  echo "error: you should define ALERTA_URL and ALERTA_KEY in /etc/default/alerta"
+  exit 1
+fi
+
+if [ $# -ne 4 ]; then
+  echo "usage: alerta-notify EVENT RESOURCE SERVICE MESSAGE"
+  exit 1
+fi
+
+EVENT=$1
+RESOURCE=$2
+SERVICE=$3
+MESSAGE=$(echo "$4" | tr '\n' ' ')
+
+curl -s -X POST ${ALERTA_URL}/api/alert \
+  -H "Authorization: Key ${ALERTA_KEY}" \
+  -H "Content-type: application/json" \
+  -d "{
+        \"environment\": \"Production\",
+        \"event\": \"${EVENT}\",
+        \"resource\": \"${RESOURCE}\",
+        \"service\": [\"${SERVICE}\"],
+        \"severity\": \"major\",
+        \"text\": \"${MESSAGE}\",
+        \"value\": \"${MESSAGE}\"
+      }" >> /var/log/admin-notifier/alerta.log

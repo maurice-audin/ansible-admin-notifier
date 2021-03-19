@@ -1,0 +1,22 @@
+#! /bin/bash
+
+source /etc/default/admin-notifier
+
+if [ -z "${PUSHOVER_USER}" ] || [ -z "${PUSHOVER_TOKEN}" ]; then
+  echo "error: you should define PUSHOVER_USER and PUSHOVER_TOKEN in /etc/default/alerta"
+  exit 1
+fi
+
+if [ $# -ne 4 ]; then
+    echo "usage: pushover-notify EVENT RESOURCE SERVICE MESSAGE"
+    exit 1
+fi
+
+TITLE="$2: $1"
+MESSAGE=$4
+
+curl -s --form-string "token=${PUSHOVER_TOKEN}" \
+        --form-string "user=${PUSHOVER_USER}" \
+        --form-string "title=${TITLE}" \
+        --form-string "message=${MESSAGE}" \
+        https://api.pushover.net/1/messages.json >> /var/log/admin-notifier/pushover.log

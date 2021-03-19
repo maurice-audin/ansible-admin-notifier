@@ -1,0 +1,43 @@
+#! /bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "usage: megacli NOTIFICATION_SERVICE"
+    exit 1
+fi
+
+[ -e /usr/sbin/megacli ] || exit 0
+
+# Check physical disk state
+megacli -PDList -aALL -NoLog | awk '
+/Enclosure Device ID:/ {
+  device_id = substr($0, 22)
+}
+/Slot Number:/ {
+  slot_number = substr($0, 14)
+}
+/Firmware state:/ {
+  firmware_state = substr($0, 17)
+  if (firmware_state != "Online, Spun Up") {
+    print "[" device_id ":" slot_number "] " firmware_state
+  }
+}
+' | while read line ; do
+    line_array=($line)
+    /usr/local/bin/admin-notifier $1 MegacliError "$(hostname)${line_array[0]}" megacli "Check physical disk ${line}"
+done
+
+# Check virtual disk state
+megacli -LDInfo -Lall -aALL -NoLog | awk '
+/Virtual Drive:/ {
+  device_id = $3
+}
+/State/ {
+  firmware_state = $3
+  if (firmware_state != "Optimal") {
+    print "[" device_id "] " firmware_state
+  }
+}
+' | while read line; do
+    line_array=($line)
+    /usr/local/bin/admin-notifier $1 MegacliError "$(hostname)${line_array[0]}" megacli "Check virtual disk ${line}"
+done

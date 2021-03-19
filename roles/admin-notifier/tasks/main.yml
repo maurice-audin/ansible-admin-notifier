@@ -1,0 +1,81 @@
+---
+
+- name: Preflight checks
+  tags: lint
+  block:
+  - name: Assert some variables are defined in inventory file
+    assert:
+      that:
+        - alerta_url is defined
+        - alerta_key is defined
+
+- name: Create /etc/default/admin-notifier
+  template:
+    src: etc/default/admin-notifier.j2
+    dest: /etc/default/admin-notifier
+
+- name: Ensure /etc/admin-notifier exists
+  file:
+    path: /etc/admin-notifier
+    state: directory
+
+- name: Copy admin-notifier main scripts
+  copy:
+    src: "usr/local/bin/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    mode: "0755"
+  with_items:
+    - admin-notifier
+    - alerta-notify
+    - pushover-notify
+
+- name: Copy various scripts
+  copy:
+    src: "etc/admin-notifier/{{ item }}"
+    dest: "/etc/admin-notifier/{{ item }}"
+    mode: "0700"
+  with_items:
+    - apt
+    - battery
+    - diskspace
+    - kernel
+    - mdadm
+    - megacli
+    - monitor-pings
+    - monitor-snapshots
+    - monitor-urls
+    - systemd
+    - temperature
+
+- name: Create logs directory
+  file:
+    path: /var/log/admin-notifier
+    state: directory
+
+- name: Copy logrotate configuration
+  copy:
+    src: etc/logrotate.d/admin-notifier
+    dest: /etc/logrotate.d/admin-notifier
+
+- name: Create /etc/admin-notifier/monitor-pings.list
+  template:
+    src: etc/admin-notifier/monitor-pings.list.j2
+    dest: /etc/admin-notifier/monitor-pings.list
+  when: monitor_pings is defined
+
+- name: Create /etc/admin-notifier/monitor-snapshots.list
+  template:
+    src: etc/admin-notifier/monitor-snapshots.list.j2
+    dest: /etc/admin-notifier/monitor-snapshots.list
+  when: monitor_snapshots|default(False)
+
+- name: Create /etc/admin-notifier/monitor-urls.list
+  template:
+    src: etc/admin-notifier/monitor-urls.list.j2
+    dest: /etc/admin-notifier/monitor-urls.list
+  when: monitor_urls is defined
+
+- name: Copy cron file
+  template:
+    src: etc/cron.d/admin-notifier.j2
+    dest: /etc/cron.d/admin-notifier

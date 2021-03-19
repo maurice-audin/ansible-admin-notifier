@@ -1,0 +1,23 @@
+#! /bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "usage: monitor-snapshots NOTIFICATION_SERVICE"
+    exit 1
+fi
+
+[ -e /etc/admin-notifier/monitor-snapshots.list ] && SNAPSHOTS=$(cat /etc/admin-notifier/monitor-snapshots.list)
+
+MISSING_SNAPSHOTS=""
+
+for host_volume in ${SNAPSHOTS}; do
+    host=$(echo ${host_volume} | cut -d':' -f1)
+    volume=$(echo ${host_volume} | cut -d':' -f2)
+
+    if [ ! -d /srv/snapshots/${host}/${volume}.daily-$(date +%Y-%m-%d) ]; then
+        MISSING_SNAPSHOTS="${MISSING_SNAPSHOTS}${host_volume} "
+    fi
+done
+
+if [ -n "${MISSING_SNAPSHOTS}" ]; then
+    /usr/local/bin/admin-notifier $1 MissingSnapshots "$(hostname)" snapshots "${MISSING_SNAPSHOTS:0:-1}"
+fi

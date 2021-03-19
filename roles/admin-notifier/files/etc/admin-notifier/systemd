@@ -1,0 +1,17 @@
+#! /bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "usage: systemd NOTIFICATION_SERVICE"
+    exit 1
+fi
+
+systemctl --failed --all > /tmp/an-systemd.log
+
+if [ x"$(grep 'loaded units listed.$' /tmp/an-systemd.log)" = x"0 loaded units listed." ]; then
+    exit 0
+fi
+
+unit_failed=$(grep 'loaded units listed' /tmp/an-systemd.log | cut -d' ' -f1)
+message="$(head -n $((${unit_failed} + 1)) /tmp/an-systemd.log | tr '\n' ' ')"
+
+/usr/local/bin/admin-notifier $1 SystemdFailed "$(hostname)" systemd "${message}"

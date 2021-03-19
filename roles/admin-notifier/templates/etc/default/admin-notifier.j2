@@ -1,0 +1,7 @@
+ALERTA_URL={{ alerta_url }}
+ALERTA_KEY={{ alerta_key }}
+
+{% if pushover_token is defined and pushover_user is defined %}
+PUSHOVER_TOKEN={{ pushover_token }}
+PUSHOVER_USER={{ pushover_user }}
+{% endif %}

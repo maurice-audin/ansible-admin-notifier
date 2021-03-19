@@ -1,0 +1,8 @@
+{% for host in groups['snapshots'] %}
+{{ host }}:/
+{% if hostvars[host].snapshots_extra_volumes is defined %}
+{% for volume in hostvars[host].snapshots_extra_volumes %}
+{{ host }}:{{ volume.split(' ')|first }}
+{% endfor %}
+{% endif %}
+{% endfor %}

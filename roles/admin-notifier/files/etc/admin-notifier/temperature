@@ -1,0 +1,28 @@
+#! /bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "usage: systemd NOTIFICATION_SERVICE"
+    exit 1
+fi
+
+ALERTS=""
+
+for zone in /sys/class/thermal/thermal_zone*; do
+    # No trip point
+    if [ ! -e ${zone}/trip_point_0_type ]; then continue; fi
+    critical_file=""
+    zone_id=${zone: -1}
+    # Check if there is a critical temperature for each thermal zone
+    for type in ${zone}/trip_point_*_type; do
+        if [ $(cat ${type}) = "critical" ]; then critical_file=${type:0:-5}_temp; fi
+    done
+    if [ -z ${critical_file} ]; then continue; fi
+    temp=$(cat ${zone}/temp)
+    crit=$(cat ${critical_file})
+    # Send alert if temperature is above 3/4 of the critical temperature
+    if [ ${temp} -gt $((3 * ${crit} / 4)) ]; then
+        ALERTS+="Thermal zone ${zone_id} at $((${temp} / 1000)) (critical is $((${crit} / 1000)))"$'\n'
+    fi
+done
+
+[ -n "${ALERTS}" ] && /usr/local/bin/admin-notifier $1 TemperatureCritical "$(hostname)" temperature "${ALERTS:0:-1}"

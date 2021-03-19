@@ -1,0 +1,22 @@
+#! /bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "usage: systemd NOTIFICATION_SERVICE"
+    exit 1
+fi
+
+[ -e /etc/admin-notifier/monitor-urls.list ] && CURL_LIST=$(cat /etc/admin-notifier/monitor-urls.list)
+
+for TEST in ${CURL_LIST}; do
+    SERVICE=$(echo ${TEST} | cut -d';' -f1)
+    URL=$(echo ${TEST} | cut -d';' -f2)
+    if [ -z "${SERVICE}" ] || [ -z "${URL}" ] ||\
+           [ "${SERVICE};${URL}" != "${TEST}" ]; then
+        echo "error: Unvalid line: ${TEST}"
+        continue
+    fi
+    HTTP_RESPONSE=$(curl -s -k "${URL}" -o /dev/null -w "%{http_code}")
+    if [ ${HTTP_RESPONSE} -ne 200 ]; then
+        /usr/local/bin/admin-notifier $1 HttpServerError $(hostname) "${SERVICE}" "${URL} is down"
+    fi
+done
