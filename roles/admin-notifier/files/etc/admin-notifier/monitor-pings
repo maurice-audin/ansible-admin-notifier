@@ -8,8 +8,13 @@ fi
 [ -e /etc/admin-notifier/monitor-pings.list ] && PING_LIST=$(cat /etc/admin-notifier/monitor-pings.list)
 
 for TARGET in ${PING_LIST}; do
-    ping -c1 ${TARGET} > /dev/null
-    if [ $? -ne 0 ]; then
-        /usr/local/bin/admin-notifier $1 PingServerError "${TARGET}" ping "${TARGET} does not respond"
-    fi
+    ERRORS=0
+    while ! ping -c1 ${TARGET} > /dev/null; do
+        sleep 3
+        ERRORS=$((${ERRORS} + 1))
+        if [ ${ERRORS} -gt 3 ]; then
+            /usr/local/bin/admin-notifier $1 PingServerError "${TARGET}" ping "${TARGET} does not respond"
+            continue
+        fi
+    done
 done
