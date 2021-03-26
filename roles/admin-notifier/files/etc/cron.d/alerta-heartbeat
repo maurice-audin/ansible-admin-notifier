@@ -1,0 +1,2 @@
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+* * * * * root /usr/local/bin/alerta-notify heartbeat $(hostname) "" ""

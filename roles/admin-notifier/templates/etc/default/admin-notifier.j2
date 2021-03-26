@@ -1,5 +1,8 @@
 ALERTA_URL={{ alerta_url }}
 ALERTA_KEY={{ alerta_key }}
+{% if alerta_host is defined %}
+ALERTA_HOST={{ alerta_host }}
+{% endif %}
 
 {% if pushover_token is defined and pushover_user is defined %}
 PUSHOVER_TOKEN={{ pushover_token }}

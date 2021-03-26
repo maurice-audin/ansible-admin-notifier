@@ -41,7 +41,6 @@
     - kernel
     - mdadm
     - megacli
-    - monitor-pings
     - monitor-snapshots
     - monitor-urls
     - systemd
@@ -57,11 +56,11 @@
     src: etc/logrotate.d/admin-notifier
     dest: /etc/logrotate.d/admin-notifier
 
-- name: Create /etc/admin-notifier/monitor-pings.list
-  template:
-    src: etc/admin-notifier/monitor-pings.list.j2
-    dest: /etc/admin-notifier/monitor-pings.list
-  when: monitor_pings is defined
+- name: Create cron to monitor ping
+  copy:
+    src: etc/cron.d/alerta-heartbeat
+    dest: /etc/cron.d/alerta-heartbeat
+  when: monitor_ping|default(True)
 
 - name: Create /etc/admin-notifier/monitor-snapshots.list
   template:

@@ -7,6 +7,10 @@ if [ -z "${ALERTA_URL}" ] || [ -z "${ALERTA_KEY}" ]; then
   exit 1
 fi
 
+if [ -z "${ALERTA_HOST}" ]; then
+     ALERTA_HOST=$(echo ${ALERTA_URL} | sed 's|.*://||')
+fi
+
 if [ $# -ne 4 ]; then
   echo "usage: alerta-notify EVENT RESOURCE SERVICE MESSAGE"
   exit 1
@@ -17,15 +21,27 @@ RESOURCE=$2
 SERVICE=$3
 MESSAGE=$(echo "$4" | tr '\n' ' ')
 
-curl -s -X POST ${ALERTA_URL}/api/alert \
-  -H "Authorization: Key ${ALERTA_KEY}" \
-  -H "Content-type: application/json" \
-  -d "{
-        \"environment\": \"Production\",
-        \"event\": \"${EVENT}\",
-        \"resource\": \"${RESOURCE}\",
-        \"service\": [\"${SERVICE}\"],
-        \"severity\": \"major\",
-        \"text\": \"${MESSAGE}\",
-        \"value\": \"${MESSAGE}\"
-      }" >> /var/log/admin-notifier/alerta.log
+if [ ${EVENT} != "heartbeat" ]; then
+    curl -s -X POST ${ALERTA_URL}/api/alert \
+         -H "Host: ${ALERTA_HOST}" \
+         -H "Authorization: Key ${ALERTA_KEY}" \
+         -H "Content-type: application/json" \
+         -d "{
+                 \"environment\": \"Production\",
+                 \"event\": \"${EVENT}\",
+                 \"resource\": \"${RESOURCE}\",
+                 \"service\": [\"${SERVICE}\"],
+                 \"severity\": \"major\",
+                 \"text\": \"${MESSAGE}\",
+                 \"value\": \"${MESSAGE}\"
+             }" >> /var/log/admin-notifier/alerta.log
+else
+    curl -s -X POST ${ALERTA_URL}/api/heartbeat \
+         -H "Host: ${ALERTA_HOST}" \
+         -H "Authorization: Key ${ALERTA_KEY}" \
+         -H "Content-type: application/json" \
+         -d "{
+                 \"origin\": \"${RESOURCE}\",
+                 \"timeout\": 180
+             }" >> /var/log/admin-notifier/alerta.log
+fi

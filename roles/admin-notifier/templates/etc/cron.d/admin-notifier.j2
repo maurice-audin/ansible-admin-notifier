@@ -2,47 +2,42 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
 {% if pushover_token is defined and pushover_user is defined %}
 # Check apt new packages
-0 10 * * * root /etc/admin-notifier/apt pushover
+0 10 * * * root /etc/admin-notifier/apt {{ apt_service|default("pushover") }}
 
 # Check loaded kernel
-12 0 * * * root /etc/admin-notifier/kernel pushover
+12 0 * * * root /etc/admin-notifier/kernel {{ kernel_service|default("pushover") }}
 
 {% if is_x1|default(False) %}
 # Check battery level
-*/15 * * * * root /etc/admin-notifier/battery alerta
+*/15 * * * * root /etc/admin-notifier/battery {{ battery_service|default("alerta") }}
 
 {% endif %}
 {% endif %}
 # Check temperature level
-*/10 * * * * root /etc/admin-notifier/temperature alerta
+*/10 * * * * root /etc/admin-notifier/temperature {{ temperature_service|default("alerta") }}
 
 # Check disk usage
-*/15 * * * * root /etc/admin-notifier/diskspace alerta
+*/15 * * * * root /etc/admin-notifier/diskspace {{ diskspace_service|default("alerta") }}
 
 {% if sw_raid|default(False) %}
 # Check soft raid arrays
-0 * * * * root /etc/admin-notifier/mdadm alerta
+0 * * * * root /etc/admin-notifier/mdadm {{ mdadm_service|default("alerta") }}
 
 {% endif %}
 {% if hw_raid|default(False) %}
 # Check hard raid arrays
-0 * * * * root /etc/admin-notifier/megacli alerta
+0 * * * * root /etc/admin-notifier/megacli {{ megacli_service|default("alerta") }}
 
 {% endif %}
 # Check systemd failed units
-*/15 * * * * root /etc/admin-notifier/systemd alerta
+*/15 * * * * root /etc/admin-notifier/systemd {{ systemd_service|default("alerta") }}
 
 {% if monitor_urls is defined %}
 # Check on websites list every 10 minutes
-*/10 * * * * root /etc/admin-notifier/monitor-urls alerta
+*/10 * * * * root /etc/admin-notifier/monitor-urls {{ monitor_urls_service|default("alerta") }}
 
 {% endif %}
-{% if monitor_pings is defined %}
-# Check pings every 5 minutes
-*/5 * * * * root /etc/admin-notifier/monitor-pings alerta
-
-{% endif%}
 {% if monitor_snapshots is defined %}
 # Check snapshots every day at 4:00
-0 4 * * * root /etc/admin-notifier/monitor-snapshots alerta
+0 4 * * * root /etc/admin-notifier/monitor-snapshots {{ monitor_snapshots_service|default("alerta") }}
 {% endif %}
