@@ -6,7 +6,7 @@ if [ $# -ne 1 ]; then
 fi
 
 loaded_kernel=$(uname -r)
-last_kernel=$(ls /boot/vmlinuz-* | sort | tail -n1 | sed 's|/boot/vmlinuz-||')
+last_kernel=$(ls -tr /boot/vmlinuz-* | tail -n1 | sed 's|/boot/vmlinuz-||')
 
 if [ x${loaded_kernel} != x${last_kernel} ]; then
     message="Loaded kernel is ${loaded_kernel}, ${last_kernel} is installed, reboot asap"
