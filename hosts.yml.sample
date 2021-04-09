@@ -5,14 +5,11 @@ admin-notifier:
       monitor_snapshots: True
     server2:
       sw_raid:           True
-      monitor_pings:     all
       monitor_urls:
         - localhost;http://127.0.0.1
         - gitlab;http://gitlab.home.lan/users/sign_in
     server3:
       sw_raid:           True
-      monitor_ping:
-        - server2
     laptop:
       is_x1:             True
       monitor_ping:      False
