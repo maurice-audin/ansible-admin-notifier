@@ -1,0 +1,8 @@
+#! /bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "usage: ping"
+    exit 1
+fi
+
+/usr/local/bin/admin-notifier alerta heartbeat $(hostname) "" ""

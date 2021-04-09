@@ -56,12 +56,6 @@
     src: etc/logrotate.d/admin-notifier
     dest: /etc/logrotate.d/admin-notifier
 
-- name: Create cron to monitor ping
-  copy:
-    src: etc/cron.d/alerta-heartbeat
-    dest: /etc/cron.d/alerta-heartbeat
-  when: monitor_ping|default(True)
-
 - name: Create /etc/admin-notifier/monitor-snapshots.list
   template:
     src: etc/admin-notifier/monitor-snapshots.list.j2
