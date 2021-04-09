@@ -43,6 +43,7 @@
     - megacli
     - monitor-snapshots
     - monitor-urls
+    - ping
     - systemd
     - temperature
 

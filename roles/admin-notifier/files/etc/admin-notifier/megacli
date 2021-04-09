@@ -52,6 +52,6 @@ megacli -LDInfo -Lall -aALL -NoLog | awk '
     if [ ${line_array[1]} = OK ]; then
         /usr/local/bin/admin-notifier $1 MegacliErrorOK "$(hostname):${line_array[0]}" hardware "Virtual disk ${line_array[0]} OK"
     else
-        /usr/local/bin/admin-notifier $1 MegacliError   "$(hostname):${line_array[0]}" hardware "Check virtual disk ${line}"
+        /usr/local/bin/admin-notifier $1 MegacliError   "$(hostname):${line_array[0]}" hardware "Virtual disk ${line_array[0]} KO"
     fi
 done
