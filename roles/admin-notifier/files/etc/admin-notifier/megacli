@@ -18,12 +18,19 @@ megacli -PDList -aALL -NoLog | awk '
 /Firmware state:/ {
   firmware_state = substr($0, 17)
   if (firmware_state != "Online, Spun Up") {
-    print "[" device_id ":" slot_number "] " firmware_state
+    print "[" device_id ":" slot_number "] KO"
+  }
+  else {
+    print "[" device_id ":" slot_number "] OK"
   }
 }
 ' | while read line ; do
     line_array=($line)
-    /usr/local/bin/admin-notifier $1 MegacliError "$(hostname)${line_array[0]}" megacli "Check physical disk ${line}"
+    if [ ${line_array[1]} = OK ]; then
+        /usr/local/bin/admin-notifier $1 MegacliErrorOK "$(hostname):${line_array[0]}" hardware "Physical disk ${line_array[0]} OK"
+    else
+        /usr/local/bin/admin-notifier $1 MegacliError   "$(hostname):${line_array[0]}" hardware "Physical disk ${line_array[0]} KO"
+    fi
 done
 
 # Check virtual disk state
@@ -34,10 +41,17 @@ megacli -LDInfo -Lall -aALL -NoLog | awk '
 /State/ {
   firmware_state = $3
   if (firmware_state != "Optimal") {
-    print "[" device_id "] " firmware_state
+    print "[" device_id "] KO"
+  }
+  else {
+    print "[" device_id "] OK"
   }
 }
 ' | while read line; do
     line_array=($line)
-    /usr/local/bin/admin-notifier $1 MegacliError "$(hostname)${line_array[0]}" megacli "Check virtual disk ${line}"
+    if [ ${line_array[1]} = OK ]; then
+        /usr/local/bin/admin-notifier $1 MegacliErrorOK "$(hostname):${line_array[0]}" hardware "Virtual disk ${line_array[0]} OK"
+    else
+        /usr/local/bin/admin-notifier $1 MegacliError   "$(hostname):${line_array[0]}" hardware "Check virtual disk ${line}"
+    fi
 done

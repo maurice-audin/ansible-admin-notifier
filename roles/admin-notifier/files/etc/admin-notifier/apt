@@ -9,10 +9,9 @@ apt update > /tmp/an-apt.log 2> /dev/null
 apt_result=$(tail -n 1 /tmp/an-apt.log)
 
 if [ x"${apt_result}" = x"All packages are up to date." ]; then
-    exit 0
+    /usr/local/bin/admin-notifier $1 AptPackagesAvailableOK $(hostname) system "${message}"
+else
+    packages_count=$(echo $apt_result | cut -d' ' -f1)
+    message="$(apt list --upgradable 2> /dev/null | tail -n ${packages_count})"
+    /usr/local/bin/admin-notifier $1 AptPackagesAvailable   $(hostname) system "${message}"
 fi
-
-packages_count=$(echo $apt_result | cut -d' ' -f1)
-message="$(apt list --upgradable 2> /dev/null | tail -n ${packages_count})"
-
-/usr/local/bin/admin-notifier $1 AptPackagesAvailable "$(hostname)" apt "${message}"

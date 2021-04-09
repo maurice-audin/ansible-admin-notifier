@@ -16,7 +16,9 @@ for TEST in ${CURL_LIST}; do
         continue
     fi
     HTTP_RESPONSE=$(curl -s -k "${URL}" -o /dev/null -w "%{http_code}")
-    if [ ${HTTP_RESPONSE} -ne 200 ]; then
-        /usr/local/bin/admin-notifier $1 HttpServerError $(hostname) "${SERVICE}" "${URL} is down"
+    if [ ${HTTP_RESPONSE} -eq 200 ]; then
+        /usr/local/bin/admin-notifier $1 HttpServerErrorOK ${SERVICE} http "${URL} is up"
+    else
+        /usr/local/bin/admin-notifier $1 HttpServerError   ${SERVICE} http "${URL} is down"
     fi
 done

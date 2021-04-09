@@ -5,8 +5,6 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-ALERTS=""
-
 for zone in /sys/class/thermal/thermal_zone*; do
     # No trip point
     if [ ! -e ${zone}/trip_point_0_type ]; then continue; fi
@@ -21,8 +19,8 @@ for zone in /sys/class/thermal/thermal_zone*; do
     crit=$(cat ${critical_file})
     # Send alert if temperature is above 3/4 of the critical temperature
     if [ ${temp} -gt $((3 * ${crit} / 4)) ]; then
-        ALERTS+="Thermal zone ${zone_id} at $((${temp} / 1000)) (critical is $((${crit} / 1000)))"$'\n'
+        /usr/local/bin/admin-notifier $1 TemperatureCritical   "$(hostname):${zone_id}" hardware "$((${temp} / 1000)) (critical: $((${crit} / 1000)))"
+    else
+        /usr/local/bin/admin-notifier $1 TemperatureCriticalOK "$(hostname):${zone_id}" hardware "$((${temp} / 1000)) (critical: $((${crit} / 1000)))"
     fi
 done
-
-[ -n "${ALERTS}" ] && /usr/local/bin/admin-notifier $1 TemperatureCritical "$(hostname)" temperature "${ALERTS:0:-1}"

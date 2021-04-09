@@ -9,7 +9,9 @@ fi
 
 for i in /dev/md/*; do
     mdadm --detail $i > /tmp/an-mdadm.log
-    grep -q "State : clean" /tmp/an-mdadm.log || \
-        grep -q "State : active" /tmp/an-mdadm.log || \
-        /usr/local/bin/admin-notifier $1 MdadmError $(hostname) mdadm "Array $i not clean, check mdadm --detail $i"
+    if grep -q "State : clean" /tmp/an-mdadm.log || grep -q "State : active" /tmp/an-mdadm.log; then
+        /usr/local/bin/admin-notifier $1 MdadmErrorOK "$(hostname):$(basename $i)" system "Array clean"
+    else
+        /usr/local/bin/admin-notifier $1 MdadmError   "$(hostname):$(basename $i)" system "Array $i not clean, check mdadm --detail $i"
+    fi
 done

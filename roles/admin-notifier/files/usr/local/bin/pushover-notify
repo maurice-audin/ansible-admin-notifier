@@ -12,11 +12,18 @@ if [ $# -ne 4 ]; then
     exit 1
 fi
 
+EVENT=$1
 TITLE="$2: $1"
 MESSAGE=$4
 
-curl -s --form-string "token=${PUSHOVER_TOKEN}" \
-        --form-string "user=${PUSHOVER_USER}" \
-        --form-string "title=${TITLE}" \
-        --form-string "message=${MESSAGE}" \
-        https://api.pushover.net/1/messages.json >> /var/log/admin-notifier/pushover.log
+case ${EVENT} in
+    *OK)
+        ;;
+    *)
+        curl -s --form-string "token=${PUSHOVER_TOKEN}" \
+                --form-string "user=${PUSHOVER_USER}" \
+                --form-string "title=${TITLE}" \
+                --form-string "message=${MESSAGE}" \
+                https://api.pushover.net/1/messages.json >> /var/log/admin-notifier/pushover.log
+        ;;
+esac

@@ -21,27 +21,47 @@ RESOURCE=$2
 SERVICE=$3
 MESSAGE=$(echo "$4" | tr '\n' ' ')
 
-if [ ${EVENT} != "heartbeat" ]; then
-    curl -s -X POST ${ALERTA_URL}/api/alert \
-         -H "Host: ${ALERTA_HOST}" \
-         -H "Authorization: Key ${ALERTA_KEY}" \
-         -H "Content-type: application/json" \
-         -d "{
-                 \"environment\": \"Production\",
-                 \"event\": \"${EVENT}\",
-                 \"resource\": \"${RESOURCE}\",
-                 \"service\": [\"${SERVICE}\"],
-                 \"severity\": \"major\",
-                 \"text\": \"${MESSAGE}\",
-                 \"value\": \"${MESSAGE}\"
-             }" >> /var/log/admin-notifier/alerta.log
-else
-    curl -s -X POST ${ALERTA_URL}/api/heartbeat \
-         -H "Host: ${ALERTA_HOST}" \
-         -H "Authorization: Key ${ALERTA_KEY}" \
-         -H "Content-type: application/json" \
-         -d "{
-                 \"origin\": \"${RESOURCE}\",
-                 \"timeout\": 180
-             }" >> /var/log/admin-notifier/alerta.log
-fi
+case ${EVENT} in
+    heartbeat)
+        curl -s -X POST ${ALERTA_URL}/api/heartbeat \
+             -H "Host: ${ALERTA_HOST}" \
+             -H "Authorization: Key ${ALERTA_KEY}" \
+             -H "Content-type: application/json" \
+             -d "{
+                     \"origin\": \"${RESOURCE}\",
+                     \"timeout\": 180,
+                     \"attributes\": {
+                         \"service\": [\"ping\"]
+                     }
+                 }" >> /var/log/admin-notifier/alerta.log
+        ;;
+    *OK)
+        curl -s -X POST ${ALERTA_URL}/api/alert \
+             -H "Host: ${ALERTA_HOST}" \
+             -H "Authorization: Key ${ALERTA_KEY}" \
+             -H "Content-type: application/json" \
+             -d "{
+                     \"environment\": \"Production\",
+                     \"event\": \"${EVENT:0: -2}\",
+                     \"resource\": \"${RESOURCE}\",
+                     \"service\": [\"${SERVICE}\"],
+                     \"severity\": \"cleared\",
+                     \"text\": \"${MESSAGE}\"
+                 }" >> /var/log/admin-notifier/alerta.log
+        ;;
+    *)
+        curl -s -X POST ${ALERTA_URL}/api/alert \
+             -H "Host: ${ALERTA_HOST}" \
+             -H "Authorization: Key ${ALERTA_KEY}" \
+             -H "Content-type: application/json" \
+             -d "{
+                     \"environment\": \"Production\",
+                     \"event\": \"${EVENT}\",
+                     \"resource\": \"${RESOURCE}\",
+                     \"service\": [\"${SERVICE}\"],
+                     \"severity\": \"major\",
+                     \"text\": \"${MESSAGE}\",
+                     \"value\": \"${MESSAGE}\"
+                 }" >> /var/log/admin-notifier/alerta.log
+        ;;
+esac

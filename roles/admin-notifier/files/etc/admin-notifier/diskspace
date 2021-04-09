@@ -9,7 +9,7 @@ title="$(hostname): diskspace critical"
 message=$(df -lhT -x tmpfs -x devtmpfs | grep -v "^Filesystem" | awk '{if(int($6) > 80) print $7 " at " $6 " (" $1 ")"}' | uniq -f 2 | tr '\n' ' ')
 
 if [ "x${message}" = "x" ]; then
-    exit 0
+    /usr/local/bin/admin-notifier $1 DiskspaceCriticalOK $(hostname) system "Diskspace ok"
+else
+    /usr/local/bin/admin-notifier $1 DiskspaceCritical   $(hostname) system "${message}"
 fi
-
-/usr/local/bin/admin-notifier $1 DiskspaceCritical $(hostname) diskspace "${message}"
