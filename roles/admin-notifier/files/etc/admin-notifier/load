@@ -1,0 +1,16 @@
+#! /bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "usage: load NOTIFICATION_SERVICE"
+    exit 1
+fi
+
+load=$(cut -d' ' -f3 /proc/loadavg)
+load_int=$(echo ${load} | sed 's/\..*//')
+processors=$(grep "^processor" /proc/cpuinfo | wc -l)
+
+if [ ${load_int} -lt $((2 * ${processors})) ]; then
+    /usr/local/bin/admin-notifier $1 System LoadCriticalOK $(hostname) os "Load: ${load}"
+else
+    /usr/local/bin/admin-notifier $1 System LoadCritical   $(hostname) os "Load: ${load}"
+fi

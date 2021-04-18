@@ -1,0 +1,13 @@
+#! /bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "usage: traefik NOTIFICATION_SERVICE"
+    exit 1
+fi
+
+HTTP_RESPONSE=$(curl -s -k http://127.0.0.1:8090/dashboard/ -o /dev/null -w "%{http_code}")
+if [ ${HTTP_RESPONSE} -eq 200 ]; then
+    /usr/local/bin/admin-notifier $1 Webserver TraefikDownOK $(hostname) proxy "Traefik is up"
+else
+    /usr/local/bin/admin-notifier $1 Webserver TraefikDown   $(hostname) proxy "Traefik is down"
+fi

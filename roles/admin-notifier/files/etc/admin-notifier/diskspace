@@ -6,10 +6,14 @@ if [ $# -ne 1 ]; then
 fi
 
 title="$(hostname): diskspace critical"
-message=$(df -lhT -x tmpfs -x devtmpfs | grep -v "^Filesystem" | awk '{if(int($6) > 80) print $7 " at " $6 " (" $1 ")"}' | uniq -f 2 | tr '\n' ' ')
-
-if [ "x${message}" = "x" ]; then
-    /usr/local/bin/admin-notifier $1 DiskspaceCriticalOK $(hostname) system "Diskspace ok"
-else
-    /usr/local/bin/admin-notifier $1 DiskspaceCritical   $(hostname) system "${message}"
-fi
+df -lhT -x tmpfs -x devtmpfs | grep -v "^Filesystem" \
+    | awk '{print $7 " at " $6 " (" $1 ")"}' | uniq -f 2 \
+    | while read line; do
+          line_array=(${line})
+          if [ ${line_array[3]} = "(overlay)" ]; then continue; fi
+          if [ ${line_array[2]:0: -1} -lt 80 ]; then
+              /usr/local/bin/admin-notifier $1 System DiskspaceCriticalOK "$(hostname):${line_array[0]}" os "${line}"
+          else
+              /usr/local/bin/admin-notifier $1 System DiskspaceCritical   "$(hostname):${line_array[0]}" os "${line}"
+          fi
+      done

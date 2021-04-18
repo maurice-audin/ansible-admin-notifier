@@ -7,6 +7,18 @@ fi
 
 [ -e /etc/admin-notifier/monitor-urls.list ] && CURL_LIST=$(cat /etc/admin-notifier/monitor-urls.list)
 
+curl_test() {
+    SERVICE=$2
+    URL=$3
+    HTTP_RESPONSE=$(curl -s -k "${URL}" --max-time 10 -o /dev/null -w "%{http_code}")
+    if [ ${HTTP_RESPONSE} -eq 200 ]; then
+        /usr/local/bin/admin-notifier $1 Webserver SiteDownOK ${SERVICE} http "${URL} is up"
+    else
+        /usr/local/bin/admin-notifier $1 Webserver SiteDown   ${SERVICE} http "${URL} is down"
+    fi
+}
+
+
 for TEST in ${CURL_LIST}; do
     SERVICE=$(echo ${TEST} | cut -d';' -f1)
     URL=$(echo ${TEST} | cut -d';' -f2)
@@ -15,10 +27,8 @@ for TEST in ${CURL_LIST}; do
         echo "error: Unvalid line: ${TEST}"
         continue
     fi
-    HTTP_RESPONSE=$(curl -s -k "${URL}" -o /dev/null -w "%{http_code}")
-    if [ ${HTTP_RESPONSE} -eq 200 ]; then
-        /usr/local/bin/admin-notifier $1 HttpServerErrorOK ${SERVICE} http "${URL} is up"
-    else
-        /usr/local/bin/admin-notifier $1 HttpServerError   ${SERVICE} http "${URL} is down"
-    fi
+    {
+        curl_test $1 ${SERVICE} ${URL}
+    } &
 done
+wait

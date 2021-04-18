@@ -11,15 +11,16 @@ if [ -z "${ALERTA_HOST}" ]; then
      ALERTA_HOST=$(echo ${ALERTA_URL} | sed 's|.*://||')
 fi
 
-if [ $# -ne 4 ]; then
-  echo "usage: alerta-notify EVENT RESOURCE SERVICE MESSAGE"
+if [ $# -ne 5 ]; then
+  echo "usage: alerta-notify ENVIRONMENT EVENT RESOURCE SERVICE MESSAGE"
   exit 1
 fi
 
-EVENT=$1
-RESOURCE=$2
-SERVICE=$3
-MESSAGE=$(echo "$4" | tr '\n' ' ')
+ENVIRONMENT=$1
+EVENT=$2
+RESOURCE=$3
+SERVICE=$4
+MESSAGE=$(echo "$5" | tr '\n' ' ')
 
 case ${EVENT} in
     heartbeat)
@@ -31,7 +32,10 @@ case ${EVENT} in
                      \"origin\": \"${RESOURCE}\",
                      \"timeout\": 180,
                      \"attributes\": {
-                         \"service\": [\"ping\"]
+                         \"environment\": \"${ENVIRONMENT}\",
+                         \"event\": \"Ping\",
+                         \"service\": [\"os\"],
+                         \"runBookUrl\": \"<a href=\\\"${ALERTA_EXTERNAL_URL}Heartbeat\\\" target=\\\"_blank\\\">Heartbeat</a>\"
                      }
                  }" >> /var/log/admin-notifier/alerta.log
         ;;
@@ -41,12 +45,15 @@ case ${EVENT} in
              -H "Authorization: Key ${ALERTA_KEY}" \
              -H "Content-type: application/json" \
              -d "{
-                     \"environment\": \"Production\",
+                     \"environment\": \"${ENVIRONMENT}\",
                      \"event\": \"${EVENT:0: -2}\",
                      \"resource\": \"${RESOURCE}\",
                      \"service\": [\"${SERVICE}\"],
-                     \"severity\": \"cleared\",
-                     \"text\": \"${MESSAGE}\"
+                     \"status\": \"closed\",
+                     \"text\": \"${MESSAGE}\",
+                     \"attributes\": {
+                         \"runBookUrl\": \"<a href=\\\"${ALERTA_EXTERNAL_URL}${EVENT:0: -2}\\\" target=\\\"_blank\\\">${EVENT:0: -2}</a>\"
+                     }
                  }" >> /var/log/admin-notifier/alerta.log
         ;;
     *)
@@ -55,13 +62,16 @@ case ${EVENT} in
              -H "Authorization: Key ${ALERTA_KEY}" \
              -H "Content-type: application/json" \
              -d "{
-                     \"environment\": \"Production\",
+                     \"environment\": \"${ENVIRONMENT}\",
                      \"event\": \"${EVENT}\",
                      \"resource\": \"${RESOURCE}\",
                      \"service\": [\"${SERVICE}\"],
                      \"severity\": \"major\",
                      \"text\": \"${MESSAGE}\",
-                     \"value\": \"${MESSAGE}\"
+                     \"value\": \"${MESSAGE}\",
+                     \"attributes\": {
+                         \"runBookUrl\": \"<a href=\\\"${ALERTA_EXTERNAL_URL}${EVENT}\\\" target=\\\"_blank\\\">${EVENT}</a>\"
+                     }
                  }" >> /var/log/admin-notifier/alerta.log
         ;;
 esac

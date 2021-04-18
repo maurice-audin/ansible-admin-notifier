@@ -1,0 +1,16 @@
+#! /bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "usage: postgresql NOTIFICATION_SERVICE"
+    exit 1
+fi
+
+cd /tmp
+sudo -u postgres psql -c ""
+
+if [ $? -eq 0 ]; then
+    /usr/local/bin/admin-notifier $1 Database PGDownOK $(hostname) postgresql "Postgresql is up"
+else
+    /usr/local/bin/admin-notifier $1 Database PGDown   $(hostname) postgresql "Postgresql is down"
+    exit 0
+fi

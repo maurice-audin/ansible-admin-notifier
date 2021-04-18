@@ -5,19 +5,23 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 * * * * * root /etc/admin-notifier/ping
 
 {% endif %}
-{% if pushover_token is defined and pushover_user is defined %}
 # Check apt new packages
-0 10 * * * root /etc/admin-notifier/apt {{ apt_service|default("pushover") }}
+0 10 * * * root /etc/admin-notifier/apt {{ apt_service|default("alerta") }}
 
 # Check loaded kernel
-12 0 * * * root /etc/admin-notifier/kernel {{ kernel_service|default("pushover") }}
+0 12 * * * root /etc/admin-notifier/kernel {{ kernel_service|default("alerta") }}
 
 {% if is_x1|default(False) %}
 # Check battery level
 */15 * * * * root /etc/admin-notifier/battery {{ battery_service|default("alerta") }}
 
 {% endif %}
-{% endif %}
+# Check load level
+*/10 * * * * root /etc/admin-notifier/load {{ load_service|default("alerta") }}
+
+# Check free memory
+*/10 * * * * root /etc/admin-notifier/memory {{ memory_servicve|default("alerta") }}
+
 # Check temperature level
 */10 * * * * root /etc/admin-notifier/temperature {{ temperature_service|default("alerta") }}
 
@@ -37,6 +41,21 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 # Check systemd failed units
 */15 * * * * root /etc/admin-notifier/systemd {{ systemd_service|default("alerta") }}
 
+{% if postgres_monitoring|default(False) %}
+*/10 * * * * root /etc/admin-notifier/postgresql {{ postgres_service|default("alerta") }}
+0 4 * * * root /etc/admin-notifier/postgresql-dumps {{postgres_dumps_service|default("alerta") }}
+
+{% endif %}
+{% if mysql_monitoring|default(False) %}
+*/10 * * * * root /etc/admin-notifier/mysql {{ mysql_service|default("alerta") }}
+0 4 * * * root /etc/admin-notifier/mysql-dumps {{mysql_dumps_service|default("alerta") }}
+
+{% endif %}
+{% if mycomposer_services is defined %}
+# Check traefik
+*/10 * * * * root /etc/admin-notifier/traefik {{ traefik_service|default("alerta") }}
+
+{% endif %}
 {% if monitor_urls is defined %}
 # Check on websites list every 10 minutes
 */10 * * * * root /etc/admin-notifier/monitor-urls {{ monitor_urls_service|default("alerta") }}

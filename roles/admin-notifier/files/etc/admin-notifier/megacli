@@ -27,9 +27,9 @@ megacli -PDList -aALL -NoLog | awk '
 ' | while read line ; do
     line_array=($line)
     if [ ${line_array[1]} = OK ]; then
-        /usr/local/bin/admin-notifier $1 MegacliErrorOK "$(hostname):${line_array[0]}" hardware "Physical disk ${line_array[0]} OK"
+        /usr/local/bin/admin-notifier $1 Hardware MegacliErrorOK "$(hostname):${line_array[0]}" raid "Physical disk ${line_array[0]} online"
     else
-        /usr/local/bin/admin-notifier $1 MegacliError   "$(hostname):${line_array[0]}" hardware "Physical disk ${line_array[0]} KO"
+        /usr/local/bin/admin-notifier $1 Hardware MegacliError   "$(hostname):${line_array[0]}" raid "Physical disk ${line_array[0]} offline"
     fi
 done
 
@@ -50,8 +50,8 @@ megacli -LDInfo -Lall -aALL -NoLog | awk '
 ' | while read line; do
     line_array=($line)
     if [ ${line_array[1]} = OK ]; then
-        /usr/local/bin/admin-notifier $1 MegacliErrorOK "$(hostname):${line_array[0]}" hardware "Virtual disk ${line_array[0]} OK"
+        /usr/local/bin/admin-notifier $1 Hardware MegacliErrorOK "$(hostname):${line_array[0]}" raid "Virtual disk ${line_array[0]} clean"
     else
-        /usr/local/bin/admin-notifier $1 MegacliError   "$(hostname):${line_array[0]}" hardware "Virtual disk ${line_array[0]} KO"
+        /usr/local/bin/admin-notifier $1 Hardware MegacliError   "$(hostname):${line_array[0]}" raid "Virtual disk ${line_array[0]} not clean"
     fi
 done

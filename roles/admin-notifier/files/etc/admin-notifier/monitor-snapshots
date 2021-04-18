@@ -14,8 +14,8 @@ for host_volume in ${SNAPSHOTS}; do
     volume=$(echo ${host_volume} | cut -d':' -f2)
 
     if [ -d /srv/snapshots/${host}/${volume}.daily-$(date +%Y-%m-%d) ]; then
-        /usr/local/bin/admin-notifier $1 MissingSnapshotsOK ${host_volume} snapshots "${host_volume} backed up"
+        /usr/local/bin/admin-notifier $1 Snapshots MissingSnapshotsOK ${host_volume} snapshots "${host_volume} backed up"
     else
-        /usr/local/bin/admin-notifier $1 MissingSnapshots   ${host_volume} snapshots "${host_volume} missing"
+        /usr/local/bin/admin-notifier $1 Snapshots MissingSnapshots   ${host_volume} snapshots "${host_volume} missing"
     fi
 done

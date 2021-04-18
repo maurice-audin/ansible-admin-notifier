@@ -39,13 +39,20 @@
     - battery
     - diskspace
     - kernel
+    - load
     - mdadm
     - megacli
+    - memory
     - monitor-snapshots
     - monitor-urls
+    - mysql
+    - mysql-dumps
     - ping
+    - postgresql
+    - postgresql-dumps
     - systemd
     - temperature
+    - traefik
 
 - name: Create logs directory
   file:

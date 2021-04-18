@@ -1,0 +1,18 @@
+#! /bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "usage: postgresql-dumps NOTIFICATION_SERVICE"
+    exit 1
+fi
+
+cd /tmp
+for DB in $(sudo -u postgres psql -t -c 'SELECT datname FROM pg_database'); do
+    if [ "${DB}" = template1 ] || [ "${DB}" = template0 ]; then
+        continue
+    fi
+    if [ $(find /var/lib/postgresql/dumps -name ${DB}.sql.gz -mtime -1 | wc -l) -ne 0 ]; then
+        /usr/local/bin/admin-notifier $1 Database PGMissingDumpOK "$(hostname):${DB}" postgresql "${DB} dumped"
+    else
+        /usr/local/bin/admin-notifier $1 Database PGMissingDump   "$(hostname):${DB}" postgresql "${DB} dump missing"
+    fi
+done

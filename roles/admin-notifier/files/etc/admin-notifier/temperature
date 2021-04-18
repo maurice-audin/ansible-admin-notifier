@@ -19,8 +19,8 @@ for zone in /sys/class/thermal/thermal_zone*; do
     crit=$(cat ${critical_file})
     # Send alert if temperature is above 3/4 of the critical temperature
     if [ ${temp} -gt $((3 * ${crit} / 4)) ]; then
-        /usr/local/bin/admin-notifier $1 TemperatureCritical   "$(hostname):${zone_id}" hardware "$((${temp} / 1000)) (critical: $((${crit} / 1000)))"
+        /usr/local/bin/admin-notifier $1 Hardware TemperatureCritical   "$(hostname):${zone_id}" sensors "$((${temp} / 1000)) (critical: $((${crit} / 1000)))"
     else
-        /usr/local/bin/admin-notifier $1 TemperatureCriticalOK "$(hostname):${zone_id}" hardware "$((${temp} / 1000)) (critical: $((${crit} / 1000)))"
+        /usr/local/bin/admin-notifier $1 Hardware TemperatureCriticalOK "$(hostname):${zone_id}" sensors "$((${temp} / 1000)) (critical: $((${crit} / 1000)))"
     fi
 done

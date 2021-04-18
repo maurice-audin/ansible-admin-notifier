@@ -8,7 +8,7 @@ fi
 battery=$(acpi 2> /dev/null | awk '{if ($3 == "Discharging," && substr($4, 0, length($4) - 2) + 0 < 10) print substr($4, 0, length($4) - 1)}')
 
 if [ "x${battery}" = "x" ]; then
-    /usr/local/bin/admin-notifier $1 BatteryCriticalOK $(hostname) hardware "Battery ok"
+    /usr/local/bin/admin-notifier $1 Hardware BatteryCriticalOK $(hostname) laptop "Battery ok"
 else
-    /usr/local/bin/admin-notifier $1 BatteryCritical   $(hostname) hardware "Battery at ${battery}"
+    /usr/local/bin/admin-notifier $1 Hardware BatteryCritical   $(hostname) laptop "Battery at ${battery}"
 fi

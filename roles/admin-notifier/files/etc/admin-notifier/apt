@@ -9,9 +9,10 @@ apt update > /tmp/an-apt.log 2> /dev/null
 apt_result=$(tail -n 1 /tmp/an-apt.log)
 
 if [ x"${apt_result}" = x"All packages are up to date." ]; then
-    /usr/local/bin/admin-notifier $1 AptPackagesAvailableOK $(hostname) system "${message}"
+    /usr/local/bin/admin-notifier $1 System PackagesObsoleteOK $(hostname) debian "${apt_result}"
 else
     packages_count=$(echo $apt_result | cut -d' ' -f1)
-    message="$(apt list --upgradable 2> /dev/null | tail -n ${packages_count})"
-    /usr/local/bin/admin-notifier $1 AptPackagesAvailable   $(hostname) system "${message}"
+    message="${packages_count} package"
+    [ ${packages_count} -ne 1 ] && message="${message}s"
+    /usr/local/bin/admin-notifier $1 System PackagesObsolete   $(hostname) debian "${message} needs upgrade"
 fi
