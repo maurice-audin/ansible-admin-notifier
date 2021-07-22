@@ -7,11 +7,16 @@ fi
 
 [ -b /dev/md/0 ] || exit 0
 
+FAILED=""
 for i in /dev/md/*; do
     mdadm --detail $i > /tmp/an-mdadm.log
-    if grep -q "State : clean" /tmp/an-mdadm.log || grep -q "State : active" /tmp/an-mdadm.log; then
-        /usr/local/bin/admin-notifier $1 Hardware MdadmErrorOK "$(hostname):$(basename $i)" raid "Array clean"
-    else
-        /usr/local/bin/admin-notifier $1 Hardware MdadmError   "$(hostname):$(basename $i)" raid "Array not clean"
+    if ! (grep -q "State : clean" /tmp/an-mdadm.log || grep -q "State : active" /tmp/an-mdadm.log); then
+        FAILED="${FAILED}$i "
     fi
 done
+
+if [ -z ${FAILED} ]; then
+    /usr/local/bin/admin-notifier $1 Hardware raid $(hostname) MdadmErrorOK "All arrays clean" 1
+else
+    /usr/local/bin/admin-notifier $1 Hardware raid $(hostname) MdadmError   "Arrays not clean: ${FAILED}" 1
+fi

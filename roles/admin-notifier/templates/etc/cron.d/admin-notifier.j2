@@ -22,9 +22,11 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 # Check free memory
 */10 * * * * root /etc/admin-notifier/memory {{ memory_servicve|default("alerta") }}
 
+{% if monitor_temp|default(True) %}
 # Check temperature level
 */10 * * * * root /etc/admin-notifier/temperature {{ temperature_service|default("alerta") }}
 
+{% endif %}
 # Check disk usage
 */15 * * * * root /etc/admin-notifier/diskspace {{ diskspace_service|default("alerta") }}
 
@@ -56,7 +58,7 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 */10 * * * * root /etc/admin-notifier/traefik {{ traefik_service|default("alerta") }}
 
 {% endif %}
-{% if monitor_urls is defined %}
+{% if http_monitor|default("") == inventory_hostname %}
 # Check on websites list every 10 minutes
 */10 * * * * root /etc/admin-notifier/monitor-urls {{ monitor_urls_service|default("alerta") }}
 

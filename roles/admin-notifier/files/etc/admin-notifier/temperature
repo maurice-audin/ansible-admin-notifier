@@ -1,10 +1,11 @@
 #! /bin/bash
 
 if [ $# -ne 1 ]; then
-    echo "usage: systemd NOTIFICATION_SERVICE"
+    echo "usage: temperature NOTIFICATION_SERVICE"
     exit 1
 fi
 
+FAILED=""
 for zone in /sys/class/thermal/thermal_zone*; do
     # No trip point
     if [ ! -e ${zone}/trip_point_0_type ]; then continue; fi
@@ -19,8 +20,12 @@ for zone in /sys/class/thermal/thermal_zone*; do
     crit=$(cat ${critical_file})
     # Send alert if temperature is above 3/4 of the critical temperature
     if [ ${temp} -gt $((3 * ${crit} / 4)) ]; then
-        /usr/local/bin/admin-notifier $1 Hardware TemperatureCritical   "$(hostname):${zone_id}" sensors "$((${temp} / 1000)) (critical: $((${crit} / 1000)))"
-    else
-        /usr/local/bin/admin-notifier $1 Hardware TemperatureCriticalOK "$(hostname):${zone_id}" sensors "$((${temp} / 1000)) (critical: $((${crit} / 1000)))"
+        FAILED="${FAILED}${zone_id} "
     fi
 done
+
+if [ -z ${FAILED} ]; then
+    /usr/local/bin/admin-notifier $1 Hardware sensors $(hostname) TemperatureCriticalOK "All temperatures below 3/4 of critical" 3
+else
+    /usr/local/bin/admin-notifier $1 Hardware sensors $(hostname) TemperatureCritical   "Temperatures above 3/4 of critical, check zones: ${FAILED}" 3
+fi

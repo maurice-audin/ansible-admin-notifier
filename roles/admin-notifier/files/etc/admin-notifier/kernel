@@ -9,7 +9,7 @@ loaded_kernel=$(uname -r)
 last_kernel=$(ls -tr /boot/vmlinuz-* | tail -n1 | sed 's|/boot/vmlinuz-||')
 
 if [ x${loaded_kernel} = x${last_kernel} ]; then
-    /usr/local/bin/admin-notifier $1 System KernelOutdatedOK $(hostname) debian "Last kernel running: ${loaded_kernel}"
+    /usr/local/bin/admin-notifier $1 System debian $(hostname) KernelOutdatedOK "Last kernel running: ${loaded_kernel}" 0
 else
-    /usr/local/bin/admin-notifier $1 System KernelOutdated   $(hostname) debian "New kernel available: ${last_kernel}"
+    /usr/local/bin/admin-notifier $1 System debian $(hostname) KernelOutdated   "New kernel available: ${last_kernel}" 0
 fi

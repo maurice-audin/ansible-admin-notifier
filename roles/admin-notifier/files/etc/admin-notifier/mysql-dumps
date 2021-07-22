@@ -5,13 +5,18 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
+FAILED=""
 for DB in $(mysql -N -s --execute 'SHOW DATABASES'); do
     if [ "${DB}" = information_schema ] || [ "${DB}" = performance_schema ]; then
         continue
     fi
-    if [ $(find /var/lib/mysql-dumps -name ${DB}.sql.gz -mtime -1 | wc -l) -ne 0 ]; then
-        /usr/local/bin/admin-notifier $1 Database MysqlMissingDumpOK "$(hostname):${DB}" mysql "${DB} dumped"
-    else
-        /usr/local/bin/admin-notifier $1 Database MysqlMissingDump   "$(hostname):${DB}" mysql "${DB} dump missing"
+    if [ $(find /var/lib/mysql-dumps -name ${DB}.sql.gz -mtime -1 | wc -l) -eq 0 ]; then
+        FAILED="${FAILED}${DB} "
     fi
 done
+
+if [ -z ${FAILED} ]; then
+    /usr/local/bin/admin-notifier $1 Database mysql $(hostname) MysqlMissingDumpOK "All databases dumped" 1
+else
+    /usr/local/bin/admin-notifier $1 Database mysql $(hostname) MysqlMissingDump   "Missing databases dump: ${FAILED}" 1
+fi

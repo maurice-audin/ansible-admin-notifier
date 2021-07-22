@@ -7,15 +7,18 @@ fi
 
 [ -e /etc/admin-notifier/monitor-snapshots.list ] && SNAPSHOTS=$(cat /etc/admin-notifier/monitor-snapshots.list)
 
-MISSING_SNAPSHOTS=""
-
-for host_volume in ${SNAPSHOTS}; do
-    host=$(echo ${host_volume} | cut -d':' -f1)
-    volume=$(echo ${host_volume} | cut -d':' -f2)
-
-    if [ -d /srv/snapshots/${host}/${volume}.daily-$(date +%Y-%m-%d) ]; then
-        /usr/local/bin/admin-notifier $1 Snapshots MissingSnapshotsOK ${host_volume} snapshots "${host_volume} backed up"
+for host_volumes in ${SNAPSHOTS}; do
+    FAILED=""
+    host=$(echo ${host_volumes} | cut -d':' -f1)
+    volumes=$(echo ${host_volumes} | cut -d':' -f2-)
+    for volume in ${volumes//:/ }; do
+        if [ ! -d /srv/snapshots/${host}/${volume}.daily-$(date +%Y-%m-%d) ]; then
+            FAILED="${FAILED}${volume}"
+        fi
+    done
+    if [ -z ${FAILED} ]; then
+        /usr/local/bin/admin-notifier $1 Snapshots snapshots ${host} MissingSnapshotsOK "All snapshots backed up" 3
     else
-        /usr/local/bin/admin-notifier $1 Snapshots MissingSnapshots   ${host_volume} snapshots "${host_volume} missing"
+        /usr/local/bin/admin-notifier $1 Snapshots snapshots ${host} MissingSnapshots   "Snapshots missing: ${FAILED}" 3
     fi
 done

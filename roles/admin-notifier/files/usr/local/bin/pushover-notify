@@ -7,13 +7,13 @@ if [ -z "${PUSHOVER_USER}" ] || [ -z "${PUSHOVER_TOKEN}" ]; then
   exit 1
 fi
 
-if [ $# -ne 5 ]; then
-    echo "usage: pushover-notify ENVIRONMENT EVENT RESOURCE SERVICE MESSAGE"
+if [ $# -ne 6 ]; then
+    echo "usage: pushover-notify ENVIRONMENT EVENT RESOURCE SERVICE MESSAGE WARNINGS"
     exit 1
 fi
 
-EVENT=$2
-TITLE="$3: $2"
+EVENT=$4
+TITLE="$3: $4"
 MESSAGE=$5
 
 case ${EVENT} in

@@ -9,6 +9,12 @@
         - alerta_url is defined
         - alerta_key is defined
 
+- name: Install required packages
+  apt:
+    pkg:
+      - jq
+    state: present
+
 - name: Create /etc/default/admin-notifier
   template:
     src: etc/default/admin-notifier.j2
@@ -74,7 +80,7 @@
   template:
     src: etc/admin-notifier/monitor-urls.list.j2
     dest: /etc/admin-notifier/monitor-urls.list
-  when: monitor_urls is defined
+  when: http_monitor|default("") == inventory_hostname
 
 - name: Copy cron file
   template:

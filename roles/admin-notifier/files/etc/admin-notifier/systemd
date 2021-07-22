@@ -8,9 +8,9 @@ fi
 systemctl --failed --all > /tmp/an-systemd.log
 
 if [ x"$(grep 'loaded units listed.$' /tmp/an-systemd.log)" = x"0 loaded units listed." ]; then
-    /usr/local/bin/admin-notifier $1 System SystemdFailedOK $(hostname) os "All services up"
+    /usr/local/bin/admin-notifier $1 System os $(hostname) SystemdFailedOK "All services up" 3
 else
     unit_failed=$(grep 'loaded units listed' /tmp/an-systemd.log | cut -d' ' -f1)
     message="$(head -n $((${unit_failed} + 1)) /tmp/an-systemd.log | tr '\n' ' ')"
-    /usr/local/bin/admin-notifier $1 System SystemdFailed   $(hostname) os "${message}"
+    /usr/local/bin/admin-notifier $1 System os $(hostname) SystemdFailed   "${message}" 3
 fi
