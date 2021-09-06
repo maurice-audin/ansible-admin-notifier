@@ -1,0 +1,35 @@
+#! /bin/bash
+
+source /etc/default/admin-notifier
+
+if [ -z "${ALERTA_URL}" ] || [ -z "${ALERTA_KEY}" ]; then
+  echo "error: you should define ALERTA_URL and ALERTA_KEY in /etc/default/alerta"
+  exit 1
+fi
+
+if [ -z "${ALERTA_HOST}" ]; then
+     ALERTA_HOST=$(echo ${ALERTA_URL} | sed 's|.*://||')
+fi
+
+ARGS=$(printf '%s\n' "$@" | paste -s -d '&')
+
+RES=$(curl -s -X GET "${ALERTA_URL}/api/alerts?${ARGS}" \
+           -H "Host: ${ALERTA_HOST}" \
+           -H "Authorization: Key ${ALERTA_KEY}" \
+           -H "Content-type: application/json")
+
+if [ $? -ne 0 ]; then
+    echo "Alerta search failed"
+    exit 2
+fi
+
+STATUS=$(jq -r ".status" <<< ${RES})
+if [ ${STATUS} != "ok" ]; then
+    echo "Alerta search status: ${STATUS}"
+    exit 1
+fi
+
+TOTAL=$(jq -r ".total" <<< ${RES})
+if [ "${TOTAL}" != "0" ]; then
+    echo ${RES}
+fi

@@ -22,6 +22,18 @@ alertalog() {
     echo "[$(date '+%Y-%m-%d %H:%M')] $@" >> ${LOGFILE}
 }
 
+ALERTA_RES=""
+alertacall() {
+    METHOD=$1
+    URL=$2
+    DATA=$3
+    ALERTA_RES=$(curl -s -X ${METHOD} ${ALERTA_URL}${URL} \
+                      -H "Host: ${ALERTA_HOST}" \
+                      -H "Authorization: Key ${ALERTA_KEY}" \
+                      -H "Content-type: application/json" \
+                      -d "${DATA}")
+}
+
 ENVIRONMENT=$1
 SERVICE=$2
 RESOURCE=$3
@@ -31,103 +43,83 @@ WARNINGS=$6
 
 case ${EVENT} in
     heartbeat)
-        HEARTBEAT=$(curl -s -X POST ${ALERTA_URL}/api/heartbeat \
-                         -H "Host: ${ALERTA_HOST}" \
-                         -H "Authorization: Key ${ALERTA_KEY}" \
-                         -H "Content-type: application/json" \
-                         -d "{
-                                 \"origin\": \"${RESOURCE}\",
-                                 \"timeout\": 180,
-                                 \"attributes\": {
-                                     \"environment\": \"${ENVIRONMENT}\",
-                                     \"event\": \"Ping\",
-                                     \"service\": [\"${SERVICE}\"],
-                                     \"severity\": \"oncall\",
-                                     \"value\": \"Ping\",
-                                     \"runBookUrl\": \"<a href=\\\"${ALERTA_EXTERNAL_URL}Heartbeat\\\" target=\\\"_blank\\\">Heartbeat</a>\"
-                                 }
-                             }")
-        if [ $? -eq 0 ]; then
-            alertalog "Hearbeat sent"
-        else
-            alertalog "Heartbeat failed"
-        fi
-        [ -n "${DEBUG}" ] && alertalog "${HEARTBEAT}"
+        alertacall POST "/api/heartbeat" \
+                   "{
+                       \"origin\": \"${RESOURCE}\",
+                       \"timeout\": 180,
+                       \"attributes\": {
+                           \"environment\": \"${ENVIRONMENT}\",
+                           \"event\": \"Ping\",
+                           \"service\": [\"${SERVICE}\"],
+                           \"severity\": \"oncall\",
+                           \"value\": \"Ping\",
+                           \"runBookUrl\": \"<a href=\\\"${ALERTA_EXTERNAL_URL}Heartbeat\\\" target=\\\"_blank\\\">Heartbeat</a>\"
+                       }
+                    }"
         ;;
 
     *OK)
-        FIXED=$(curl -s -X POST ${ALERTA_URL}/api/alert \
-                     -H "Host: ${ALERTA_HOST}" \
-                     -H "Authorization: Key ${ALERTA_KEY}" \
-                     -H "Content-type: application/json" \
-                     -d "{
-                             \"environment\": \"${ENVIRONMENT}\",
-                             \"event\": \"${EVENT:0: -2}\",
-                             \"resource\": \"${RESOURCE}\",
-                             \"service\": [\"${SERVICE}\"],
-                             \"status\": \"fixed\",
-                             \"text\": \"${DESCRIPTION}\",
-                             \"value\": \"${DESCRIPTION}\",
-                             \"attributes\": {
-                                 \"runBookUrl\": \"<a href=\\\"${ALERTA_EXTERNAL_URL}${EVENT:0: -2}\\\" target=\\\"_blank\\\">${EVENT:0: -2}</a>\"
-                             }
-                         }")
-        if [ $? -eq 0 ]; then
+        SEARCH=$(/usr/local/bin/alerta-search environment=${ENVIRONMENT} event=${EVENT:0: -2} resource=${RESOURCE})
+        if [ -z "${SEARCH}" ] || \
+               [ "$(jq -r '.alerts[0].status' <<< ${SEARCH})" = "open" ]; then
+            alertacall POST "/api/alert" \
+                       "{
+                          \"environment\": \"${ENVIRONMENT}\",
+                          \"event\": \"${EVENT:0: -2}\",
+                          \"resource\": \"${RESOURCE}\",
+                          \"service\": [\"${SERVICE}\"],
+                          \"status\": \"fixed\",
+                          \"text\": \"${DESCRIPTION}\",
+                          \"value\": \"${DESCRIPTION}\",
+                          \"attributes\": {
+                            \"runBookUrl\": \"<a href=\\\"${ALERTA_EXTERNAL_URL}${EVENT:0: -2}\\\" target=\\\"_blank\\\">${EVENT:0: -2}</a>\"
+                          }
+                        }"
             alertalog "FIXED sent (${ENVIRONMENT}, ${EVENT:0: -2}, ${RESOURCE}, ${SERVICE}, ${DESCRIPTION})"
-        else
-            alertalog "FIXED failed (${ENVIRONMENT}, ${EVENT:0: -2}, ${RESOURCE}, ${SERVICE}, ${DESCRIPTION})"
         fi
-        [ -n "${DEBUG}" ] && alertalog "${FIXED}"
         ;;
 
     *)
-        ALERT=$(curl -s -X POST ${ALERTA_URL}/api/alert \
-                     -H "Host: ${ALERTA_HOST}" \
-                     -H "Authorization: Key ${ALERTA_KEY}" \
-                     -H "Content-type: application/json" \
-                     -d "{
-                             \"environment\": \"${ENVIRONMENT}\",
-                             \"event\": \"${EVENT}\",
-                             \"resource\": \"${RESOURCE}\",
-                             \"service\": [\"${SERVICE}\"],
-                             \"severity\": \"alert\",
-                             \"text\": \"${DESCRIPTION}\",
-                             \"value\": \"${DESCRIPTION}\",
-                             \"attributes\": {
-                                 \"runBookUrl\": \"<a href=\\\"${ALERTA_EXTERNAL_URL}${EVENT}\\\" target=\\\"_blank\\\">${EVENT}</a>\"
-                             }
-                     }")
-        if [ $? -eq 0 ]; then
+        SEARCH=$(/usr/local/bin/alerta-search environment=${ENVIRONMENT} event=${EVENT} resource=${RESOURCE})
+        if [ -z "${SEARCH}" ] \
+               || [ "$(jq -r '.alerts[0].severity' <<< ${SEARCH})" != "oncall" ]; then
+            alertacall POST "/api/alert" \
+                       "{
+                          \"environment\": \"${ENVIRONMENT}\",
+                          \"event\": \"${EVENT}\",
+                          \"resource\": \"${RESOURCE}\",
+                          \"service\": [\"${SERVICE}\"],
+                          \"severity\": \"alert\",
+                          \"text\": \"${DESCRIPTION}\",
+                          \"value\": \"${DESCRIPTION}\",
+                          \"attributes\": {
+                            \"runBookUrl\": \"<a href=\\\"${ALERTA_EXTERNAL_URL}${EVENT}\\\" target=\\\"_blank\\\">${EVENT}</a>\"
+                          }
+                        }"
             alertalog "ALERT sent (${ENVIRONMENT}, ${EVENT:0: -2}, ${RESOURCE}, ${SERVICE}, ${DESCRIPTION})"
         else
-            alertalog "ALERT failed (${ENVIRONMENT}, ${EVENT:0: -2}, ${RESOURCE}, ${SERVICE}, ${DESCRIPTION})"
+            exit 0
         fi
-        [ -n "${DEBUG}" ] && alertalog "${ONCALL}"
-
-        ALERT_COUNT=$(jq -r ".alert.duplicateCount" <<< ${ALERT})
+        if [ "$(jq -r '.alerts[0].severity' <<< ${SEARCH})" != "alert" ]; then
+            ALERT_COUNT=0
+        else
+            ALERT_COUNT=$(($(jq -r ".alerts[0].duplicateCount" <<< ${SEARCH}) + 1))
+        fi
         if [ ${WARNINGS} -ne 0 ] && [ $((${ALERT_COUNT} + 1)) -ge ${WARNINGS} ]; then
-            ONCALL=$(curl -s -X POST ${ALERTA_URL}/api/alert \
-                          -H "Host: ${ALERTA_HOST}" \
-                          -H "Authorization: Key ${ALERTA_KEY}" \
-                          -H "Content-type: application/json" \
-                          -d "{
-                                  \"environment\": \"${ENVIRONMENT}\",
-                                  \"event\": \"${EVENT}\",
-                                  \"resource\": \"${RESOURCE}\",
-                                  \"service\": [\"${SERVICE}\"],
-                                  \"severity\": \"oncall\",
-                                  \"text\": \"${DESCRIPTION}\",
-                                  \"value\": \"${DESCRIPTION}\",
-                                  \"attributes\": {
-                                      \"runBookUrl\": \"<a href=\\\"${ALERTA_EXTERNAL_URL}${EVENT}\\\" target=\\\"_blank\\\">${EVENT}</a>\"
-                                  }
-                              }")
-            if [ $? -eq 0 ]; then
-                alertalog "ONCALL sent (${ENVIRONMENT}, ${EVENT:0: -2}, ${RESOURCE}, ${SERVICE}, ${DESCRIPTION})"
-            else
-                alertalog "ONCALL failed (${ENVIRONMENT}, ${EVENT:0: -2}, ${RESOURCE}, ${SERVICE}, ${DESCRIPTION})"
-            fi
-            [ -n "${DEBUG}" ] && alertalog "${ONCALL}"
+            alertacall POST "/api/alert" \
+                       "{
+                          \"environment\": \"${ENVIRONMENT}\",
+                          \"event\": \"${EVENT}\",
+                          \"resource\": \"${RESOURCE}\",
+                          \"service\": [\"${SERVICE}\"],
+                          \"severity\": \"oncall\",
+                          \"text\": \"${DESCRIPTION}\",
+                          \"value\": \"${DESCRIPTION}\",
+                          \"attributes\": {
+                            \"runBookUrl\": \"<a href=\\\"${ALERTA_EXTERNAL_URL}${EVENT}\\\" target=\\\"_blank\\\">${EVENT}</a>\"
+                          }
+                        }"
+            alertalog "ONCALL sent (${ENVIRONMENT}, ${EVENT:0: -2}, ${RESOURCE}, ${SERVICE}, ${DESCRIPTION})"
         fi
         ;;
 esac

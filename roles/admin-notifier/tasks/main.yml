@@ -33,6 +33,7 @@
   with_items:
     - admin-notifier
     - alerta-notify
+    - alerta-search
     - pushover-notify
 
 - name: Copy various scripts
@@ -59,6 +60,7 @@
     - systemd
     - temperature
     - traefik
+    - unifi-balance
 
 - name: Create logs directory
   file:

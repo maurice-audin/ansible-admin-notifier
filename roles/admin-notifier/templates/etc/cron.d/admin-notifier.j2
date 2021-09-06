@@ -58,6 +58,11 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 */10 * * * * root /etc/admin-notifier/traefik {{ traefik_service|default("alerta") }}
 
 {% endif %}
+{% if unifi_monitoring|default(False) %}
+# Check unifi failed balance
+* * * * * root /etc/admin-notifier/unifi-balance alerta
+
+{% endif %}
 {% if http_monitor|default("") == inventory_hostname %}
 # Check on websites list every 10 minutes
 */10 * * * * root /etc/admin-notifier/monitor-urls {{ monitor_urls_service|default("alerta") }}
