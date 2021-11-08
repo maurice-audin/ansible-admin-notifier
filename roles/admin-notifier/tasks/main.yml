@@ -31,10 +31,8 @@
     dest: "/usr/local/bin/{{ item }}"
     mode: "0755"
   with_items:
-    - admin-notifier
     - alerta-notify
     - alerta-search
-    - pushover-notify
 
 - name: Copy various scripts
   copy:
@@ -50,17 +48,17 @@
     - mdadm
     - megacli
     - memory
-    - monitor-snapshots
-    - monitor-urls
     - mysql
     - mysql-dumps
     - ping
     - postgresql
     - postgresql-dumps
+    - snapshots
     - systemd
     - temperature
     - traefik
     - unifi-balance
+    - urls
 
 - name: Create logs directory
   file:
@@ -72,19 +70,38 @@
     src: etc/logrotate.d/admin-notifier
     dest: /etc/logrotate.d/admin-notifier
 
-- name: Create /etc/admin-notifier/monitor-snapshots.list
+- name: Create /etc/admin-notifier/snapshots.list
   template:
-    src: etc/admin-notifier/monitor-snapshots.list.j2
-    dest: /etc/admin-notifier/monitor-snapshots.list
+    src: etc/admin-notifier/snapshots.list.j2
+    dest: /etc/admin-notifier/snapshots.list
   when: monitor_snapshots|default(False)
 
-- name: Create /etc/admin-notifier/monitor-urls.list
+- name: Create /etc/admin-notifier/urls.list
   template:
-    src: etc/admin-notifier/monitor-urls.list.j2
-    dest: /etc/admin-notifier/monitor-urls.list
-  when: http_monitor|default("") == inventory_hostname
+    src: etc/admin-notifier/urls.list.j2
+    dest: /etc/admin-notifier/urls.list
+  when: monitor_urls|default(False)
 
-- name: Copy cron file
-  template:
-    src: etc/cron.d/admin-notifier.j2
-    dest: /etc/cron.d/admin-notifier
+- include_tasks: timer.yml
+  vars:
+    service: "{{ item }}"
+  with_items:
+    - apt
+    - battery
+    - diskspace
+    - kernel
+    - load
+    - mdadm
+    - megacli
+    - memory
+    - snapshots
+    - mysql
+    - mysql-dumps
+    - ping
+    - postgresql
+    - postgresql-dumps
+    - systemd
+    - temperature
+    - traefik
+    - unifi-balance
+    - urls

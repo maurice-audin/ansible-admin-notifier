@@ -1,0 +1,9 @@
+[Unit]
+Description=Check mysql status and inform alerta if down
+
+[Service]
+Type=oneshot
+ExecStart=/etc/admin-notifier/mysql
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,9 @@
+[Unit]
+Description=Check available diskspace and inform alerta if too low
+
+[Service]
+Type=oneshot
+ExecStart=/etc/admin-notifier/diskspace
+
+[Install]
+WantedBy=multi-user.target

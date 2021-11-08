@@ -1,0 +1,8 @@
+[Unit]
+Description=Check free memory and inform alerta if too low every 10min
+
+[Timer]
+OnCalendar=*-*-* *:0/10:00
+
+[Install]
+WantedBy=timers.target

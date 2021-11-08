@@ -1,0 +1,8 @@
+[Unit]
+Description=Check load and inform alerta if too high every 10min
+
+[Timer]
+OnCalendar=*-*-* *:0/10:00
+
+[Install]
+WantedBy=timers.target

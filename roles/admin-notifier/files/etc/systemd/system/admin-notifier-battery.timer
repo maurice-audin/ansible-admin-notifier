@@ -1,0 +1,8 @@
+[Unit]
+Description=Check battery and inform alerta if low every 15min
+
+[Timer]
+OnCalendar=*-*-* *:0/15:00
+
+[Install]
+WantedBy=timers.target

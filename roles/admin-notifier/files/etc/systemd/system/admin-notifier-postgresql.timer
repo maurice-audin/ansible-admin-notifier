@@ -1,0 +1,8 @@
+[Unit]
+Description=Check postgresql status and inform alerta if down every 10min
+
+[Timer]
+OnCalendar=*-*-* *:0/10:00
+
+[Install]
+WantedBy=timers.target

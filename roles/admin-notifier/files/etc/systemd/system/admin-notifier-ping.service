@@ -1,0 +1,9 @@
+[Unit]
+Description=Send ping to alerta
+
+[Service]
+Type=oneshot
+ExecStart=/etc/admin-notifier/ping
+
+[Install]
+WantedBy=multi-user.target

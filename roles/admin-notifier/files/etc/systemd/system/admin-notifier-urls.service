@@ -1,0 +1,9 @@
+[Unit]
+Description=Check a list of urls and inform alerta if any is down
+
+[Service]
+Type=oneshot
+ExecStart=/etc/admin-notifier/urls
+
+[Install]
+WantedBy=multi-user.target

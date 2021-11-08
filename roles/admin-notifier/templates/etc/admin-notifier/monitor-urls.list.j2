@@ -1,7 +1,0 @@
-{% for host in groups['admin-notifier'] %}
-{% if hostvars[host].monitor_urls is defined %}
-{{ host }}{% for url in hostvars[host].monitor_urls %}
-;{{ url }}{% endfor %}
-
-{% endif %}
-{% endfor %}

@@ -1,0 +1,8 @@
+[Unit]
+Description=Check postgresql dumps and inform alerta if any is missing every day at 4am.
+
+[Timer]
+OnCalendar=*-*-* 04:00:00
+
+[Install]
+WantedBy=timers.target

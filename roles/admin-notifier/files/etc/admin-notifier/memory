@@ -1,14 +1,9 @@
 #! /bin/bash
 
-if [ $# -ne 1 ]; then
-    echo "usage: battery NOTIFICATION_SERVICE"
-    exit 1
-fi
-
 free_mem=$(free | grep Mem | awk '{print int($7/$2 * 100)}')
 
 if [ ${free_mem} -gt 15 ]; then
-    /usr/local/bin/admin-notifier $1 System os $(hostname) LowMemoryOK "Free memory ${free_mem}%" 3
+    /usr/local/bin/alerta-notify System os $(hostname) LowMemoryOK "Free memory ${free_mem}%" 3
 else
-    /usr/local/bin/admin-notifier $1 System os $(hostname) LowMemory   "Free memory ${free_mem}%" 3
+    /usr/local/bin/alerta-notify System os $(hostname) LowMemory   "Free memory ${free_mem}%" 3
 fi

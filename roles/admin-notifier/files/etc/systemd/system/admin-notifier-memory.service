@@ -1,0 +1,9 @@
+[Unit]
+Description=Check free memory and inform alerta if too low
+
+[Service]
+Type=oneshot
+ExecStart=/etc/admin-notifier/memory
+
+[Install]
+WantedBy=multi-user.target

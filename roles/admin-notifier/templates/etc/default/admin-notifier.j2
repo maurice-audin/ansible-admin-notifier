@@ -4,8 +4,3 @@ ALERTA_KEY={{ alerta_key }}
 ALERTA_HOST={{ alerta_host }}
 {% endif %}
 ALERTA_EXTERNAL_URL={{ alerta_external_url|default("www.example.com/wiki/RunBook") }}
-
-{% if pushover_token is defined and pushover_user is defined %}
-PUSHOVER_TOKEN={{ pushover_token }}
-PUSHOVER_USER={{ pushover_user }}
-{% endif %}

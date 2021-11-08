@@ -1,0 +1,8 @@
+[Unit]
+Description=Check available diskspace and inform alerta if too low every 15min
+
+[Timer]
+OnCalendar=*-*-* *:0/15:00
+
+[Install]
+WantedBy=timers.target

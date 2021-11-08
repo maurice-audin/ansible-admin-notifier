@@ -1,0 +1,9 @@
+[Unit]
+Description=Check load and inform alerta if too high
+
+[Service]
+Type=oneshot
+ExecStart=/etc/admin-notifier/load
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,8 @@
+[Unit]
+Description=Check Unifi WAN balancing and inform alerta if any is down every 10min
+
+[Timer]
+OnCalendar=*-*-* *:0/10:00
+
+[Install]
+WantedBy=timers.target

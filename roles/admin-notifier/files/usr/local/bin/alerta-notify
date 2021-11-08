@@ -38,7 +38,8 @@ ENVIRONMENT=$1
 SERVICE=$2
 RESOURCE=$3
 EVENT=$4
-DESCRIPTION=$(echo "$5" | tr '\n' ' ')
+DESCRIPTION=${RESOURCE}/${EVENT}
+TEXT=$(echo "$5" | tr '\n' ' ')
 WARNINGS=$6
 
 case ${EVENT} in
@@ -61,16 +62,17 @@ case ${EVENT} in
     *OK)
         SEARCH=$(/usr/local/bin/alerta-search environment=${ENVIRONMENT} event=${EVENT:0: -2} resource=${RESOURCE})
         if [ -z "${SEARCH}" ] || \
-               [ "$(jq -r '.alerts[0].status' <<< ${SEARCH})" = "open" ]; then
+               [ "$(jq -r '.alerts[0].severity' <<< ${SEARCH})" != "fixed" ]; then
             alertacall POST "/api/alert" \
                        "{
+                          \"timeout\": 0,
                           \"environment\": \"${ENVIRONMENT}\",
                           \"event\": \"${EVENT:0: -2}\",
                           \"resource\": \"${RESOURCE}\",
                           \"service\": [\"${SERVICE}\"],
                           \"status\": \"fixed\",
-                          \"text\": \"${DESCRIPTION}\",
-                          \"value\": \"${DESCRIPTION}\",
+                          \"text\": \"${TEXT}\",
+                          \"value\": \"FIXED: ${DESCRIPTION:0: -2}\",
                           \"attributes\": {
                             \"runBookUrl\": \"<a href=\\\"${ALERTA_EXTERNAL_URL}${EVENT:0: -2}\\\" target=\\\"_blank\\\">${EVENT:0: -2}</a>\"
                           }
@@ -83,20 +85,23 @@ case ${EVENT} in
         SEARCH=$(/usr/local/bin/alerta-search environment=${ENVIRONMENT} event=${EVENT} resource=${RESOURCE})
         if [ -z "${SEARCH}" ] \
                || [ "$(jq -r '.alerts[0].severity' <<< ${SEARCH})" != "oncall" ]; then
-            alertacall POST "/api/alert" \
-                       "{
-                          \"environment\": \"${ENVIRONMENT}\",
-                          \"event\": \"${EVENT}\",
-                          \"resource\": \"${RESOURCE}\",
-                          \"service\": [\"${SERVICE}\"],
-                          \"severity\": \"alert\",
-                          \"text\": \"${DESCRIPTION}\",
-                          \"value\": \"${DESCRIPTION}\",
-                          \"attributes\": {
-                            \"runBookUrl\": \"<a href=\\\"${ALERTA_EXTERNAL_URL}${EVENT}\\\" target=\\\"_blank\\\">${EVENT}</a>\"
-                          }
-                        }"
-            alertalog "ALERT sent (${ENVIRONMENT}, ${EVENT:0: -2}, ${RESOURCE}, ${SERVICE}, ${DESCRIPTION})"
+            if [ ${WARNINGS} != 1 ]; then
+                alertacall POST "/api/alert" \
+                           "{
+                              \"timeout\": 0,
+                              \"environment\": \"${ENVIRONMENT}\",
+                              \"event\": \"${EVENT}\",
+                              \"resource\": \"${RESOURCE}\",
+                              \"service\": [\"${SERVICE}\"],
+                              \"severity\": \"alert\",
+                              \"text\": \"${TEXT}\",
+                              \"value\": \"ALERT: ${DESCRIPTION}\",
+                              \"attributes\": {
+                                \"runBookUrl\": \"<a href=\\\"${ALERTA_EXTERNAL_URL}${EVENT}\\\" target=\\\"_blank\\\">${EVENT}</a>\"
+                              }
+                            }"
+                alertalog "ALERT sent (${ENVIRONMENT}, ${EVENT:0: -2}, ${RESOURCE}, ${SERVICE}, ${DESCRIPTION})"
+            fi
         else
             exit 0
         fi
@@ -108,13 +113,14 @@ case ${EVENT} in
         if [ ${WARNINGS} -ne 0 ] && [ $((${ALERT_COUNT} + 1)) -ge ${WARNINGS} ]; then
             alertacall POST "/api/alert" \
                        "{
+                          \"timeout\": 0,
                           \"environment\": \"${ENVIRONMENT}\",
                           \"event\": \"${EVENT}\",
                           \"resource\": \"${RESOURCE}\",
                           \"service\": [\"${SERVICE}\"],
                           \"severity\": \"oncall\",
-                          \"text\": \"${DESCRIPTION}\",
-                          \"value\": \"${DESCRIPTION}\",
+                          \"text\": \"${TEXT}\",
+                          \"value\": \"ONCALL: ${DESCRIPTION}\",
                           \"attributes\": {
                             \"runBookUrl\": \"<a href=\\\"${ALERTA_EXTERNAL_URL}${EVENT}\\\" target=\\\"_blank\\\">${EVENT}</a>\"
                           }

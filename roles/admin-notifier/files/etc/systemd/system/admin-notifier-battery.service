@@ -1,0 +1,9 @@
+[Unit]
+Description=Check battery and inform alerta if low
+
+[Service]
+Type=oneshot
+ExecStart=/etc/admin-notifier/battery
+
+[Install]
+WantedBy=multi-user.target

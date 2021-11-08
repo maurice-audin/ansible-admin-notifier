@@ -1,0 +1,9 @@
+[Unit]
+Description=Check temperature and inform alerta if too high
+
+[Service]
+Type=oneshot
+ExecStart=/etc/admin-notifier/temperature
+
+[Install]
+WantedBy=multi-user.target

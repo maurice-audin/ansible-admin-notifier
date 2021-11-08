@@ -1,0 +1,9 @@
+[Unit]
+Description=Check megacli status and inform alerta if in failure
+
+[Service]
+Type=oneshot
+ExecStart=/etc/admin-notifier/megacli
+
+[Install]
+WantedBy=multi-user.target

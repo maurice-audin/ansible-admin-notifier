@@ -1,0 +1,9 @@
+[Unit]
+Description=Check loaded kernel and inform alerta if outdated
+
+[Service]
+Type=oneshot
+ExecStart=/etc/admin-notifier/kernel
+
+[Install]
+WantedBy=multi-user.target

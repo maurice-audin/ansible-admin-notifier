@@ -1,0 +1,9 @@
+[Unit]
+Description=Check new packages and inform alerta
+
+[Service]
+Type=oneshot
+ExecStart=/etc/admin-notifier/apt
+
+[Install]
+WantedBy=multi-user.target

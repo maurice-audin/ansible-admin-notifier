@@ -1,0 +1,19 @@
+#! /bin/bash
+
+[ -e /etc/admin-notifier/snapshots.list ] && SNAPSHOTS=$(cat /etc/admin-notifier/snapshots.list)
+
+for host_volumes in ${SNAPSHOTS}; do
+    FAILED=""
+    host=$(echo ${host_volumes} | cut -d':' -f1)
+    volumes=$(echo ${host_volumes} | cut -d':' -f2-)
+    for volume in ${volumes//:/ }; do
+        if [ ! -d /srv/snapshots/${host}/${volume}.daily-$(date +%Y-%m-%d) ]; then
+            FAILED="${FAILED}${volume}"
+        fi
+    done
+    if [ -z ${FAILED} ]; then
+        /usr/local/bin/alerta-notify Snapshots snapshots ${host} MissingSnapshotsOK "All snapshots backed up" 3
+    else
+        /usr/local/bin/alerta-notify Snapshots snapshots ${host} MissingSnapshots   "Snapshots missing: ${FAILED}" 3
+    fi
+done

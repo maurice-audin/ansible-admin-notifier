@@ -1,0 +1,24 @@
+---
+
+- set_fact:
+    varname: "monitor_{{ service }}"
+- set_fact:
+    service_monitoring: "{{ hostvars[inventory_hostname][varname]|default(False) }}"
+
+- block:
+    - name: "Create admin notifier {{ service }} service and timer"
+      copy:
+        src: "etc/systemd/system/{{ item }}"
+        dest: "/etc/systemd/system/{{ item }}"
+      with_items:
+        - "admin-notifier-{{ service }}.service"
+        - "admin-notifier-{{ service }}.timer"
+
+    - name: "Activate admin notifier {{ service }} timer"
+      service:
+        name: "admin-notifier-{{ service }}.timer"
+        state: started
+        enabled: yes
+        daemon_reload: yes
+
+  when: service_monitoring

@@ -1,10 +1,5 @@
 #! /bin/bash
 
-if [ $# -ne 1 ]; then
-    echo "usage: mysql-dumps NOTIFICATION_SERVICE"
-    exit 1
-fi
-
 FAILED=""
 for DB in $(mysql -N -s --execute 'SHOW DATABASES'); do
     if [ "${DB}" = information_schema ] || [ "${DB}" = performance_schema ]; then
@@ -16,7 +11,7 @@ for DB in $(mysql -N -s --execute 'SHOW DATABASES'); do
 done
 
 if [ -z ${FAILED} ]; then
-    /usr/local/bin/admin-notifier $1 Database mysql $(hostname) MysqlMissingDumpOK "All databases dumped" 1
+    /usr/local/bin/alerta-notify Database mysql $(hostname) MysqlMissingDumpOK "All databases dumped" 1
 else
-    /usr/local/bin/admin-notifier $1 Database mysql $(hostname) MysqlMissingDump   "Missing databases dump: ${FAILED}" 1
+    /usr/local/bin/alerta-notify Database mysql $(hostname) MysqlMissingDump   "Missing databases dump: ${FAILED}" 1
 fi

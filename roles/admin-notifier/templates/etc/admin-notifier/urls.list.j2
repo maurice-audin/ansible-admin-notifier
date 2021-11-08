@@ -1,0 +1,8 @@
+{% for host in groups['admin-notifier'] %}
+{% if hostvars[host].urls is defined %}
+{{ host }}{% if hostvars[host].mycomposer_services is defined and traefik_auth is defined %}
+;https://admin:{{ traefik_auth }}@{{ host }}.robespierre.lan/dashboard/{% endif %}{% for url in hostvars[host].urls %}
+;{{ url }}{% endfor %}
+
+{% endif %}
+{% endfor %}

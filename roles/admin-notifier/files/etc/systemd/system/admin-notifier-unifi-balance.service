@@ -1,0 +1,9 @@
+[Unit]
+Description=Check Unifi WAN balancing and inform alerta if any is down
+
+[Service]
+Type=oneshot
+ExecStart=/etc/admin-notifier/unifi-balance
+
+[Install]
+WantedBy=multi-user.target

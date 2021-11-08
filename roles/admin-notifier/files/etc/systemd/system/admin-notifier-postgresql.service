@@ -1,0 +1,9 @@
+[Unit]
+Description=Check postgresql status and inform alerta if down
+
+[Service]
+Type=oneshot
+ExecStart=/etc/admin-notifier/postgresql
+
+[Install]
+WantedBy=multi-user.target

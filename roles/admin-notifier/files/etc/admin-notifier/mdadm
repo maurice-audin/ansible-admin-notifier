@@ -1,10 +1,5 @@
 #! /bin/bash
 
-if [ $# -ne 1 ]; then
-    echo "usage: mdadm NOTIFICATION_SERVICE"
-    exit 1
-fi
-
 [ -b /dev/md/0 ] || exit 0
 
 FAILED=""
@@ -16,7 +11,7 @@ for i in /dev/md/*; do
 done
 
 if [ -z ${FAILED} ]; then
-    /usr/local/bin/admin-notifier $1 Hardware raid $(hostname) MdadmErrorOK "All arrays clean" 1
+    /usr/local/bin/alerta-notify Hardware raid $(hostname) MdadmErrorOK "All arrays clean" 1
 else
-    /usr/local/bin/admin-notifier $1 Hardware raid $(hostname) MdadmError   "Arrays not clean: ${FAILED}" 1
+    /usr/local/bin/alerta-notify Hardware raid $(hostname) MdadmError   "Arrays not clean: ${FAILED}" 1
 fi

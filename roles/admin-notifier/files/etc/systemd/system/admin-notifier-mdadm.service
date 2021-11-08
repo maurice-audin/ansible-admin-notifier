@@ -1,0 +1,9 @@
+[Unit]
+Description=Check mdadm status and inform alerta if in failure
+
+[Service]
+Type=oneshot
+ExecStart=/etc/admin-notifier/mdadm
+
+[Install]
+WantedBy=multi-user.target

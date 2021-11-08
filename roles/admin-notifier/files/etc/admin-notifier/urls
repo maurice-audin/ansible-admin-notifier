@@ -1,0 +1,35 @@
+#! /bin/bash
+
+[ -e /etc/admin-notifier/urls.list ] && CURL_LIST=$(cat /etc/admin-notifier/urls.list)
+
+curl_tests() {
+    RESOURCE=$1
+    URLS=$2
+    FAILED=""
+    for URL in ${URLS//;/ }; do
+        HTTP_RESPONSE=$(curl -s "${URL}" --max-time 10 -o /dev/null -w "%{http_code}")
+        if [ ${HTTP_RESPONSE} -ne 200 ]; then
+            FAILED="${FAILED}${URL} "
+        fi
+    done
+    if [ -z ${FAILED} ]; then
+        /usr/local/bin/alerta-notify Webserver http ${RESOURCE} SiteDownOK "All websites are up" 3
+    else
+        /usr/local/bin/alerta-notify Webserver http ${RESOURCE} SiteDown   "Websites down: ${FAILED}" 3
+    fi
+}
+
+
+for TESTS in ${CURL_LIST}; do
+    RESOURCE=$(echo ${TESTS} | cut -d';' -f1)
+    URLS=$(echo ${TESTS} | cut -d';' -f2-)
+    if [ -z "${RESOURCE}" ] || [ -z "${URLS}" ] ||\
+           [ "${RESOURCE};${URLS}" != "${TESTS}" ]; then
+        echo "error: Unvalid line: ${TESTS}"
+        continue
+    fi
+    {
+        curl_tests ${RESOURCE} ${URLS}
+    } &
+done
+wait

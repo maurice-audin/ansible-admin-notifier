@@ -1,0 +1,9 @@
+[Unit]
+Description=Check failed services and inform alerta if any
+
+[Service]
+Type=oneshot
+ExecStart=/etc/admin-notifier/systemd
+
+[Install]
+WantedBy=multi-user.target

@@ -1,16 +1,11 @@
 #! /bin/bash
 
-if [ $# -ne 1 ]; then
-    echo "usage: unifi-balance NOTIFICATION_SERVICE"
-    exit 1
-fi
-
 UNIFI_USR="${UNIFI_USR:-ubnt}"
 UNIFI_USG="${UNIFI_USG:-unifi-flux-capacitor}"
 
 statuses=$(ssh ${UNIFI_USR}@${UNIFI_USG} /opt/vyatta/bin/vyatta-op-cmd-wrapper 'show load-balance status' 2> /dev/null | grep "status" | sed 's/.*: //')
 if [ "${statuses}" = "" ]; then
-    /usr/local/bin/admin-notifier $1 Hardware unifi-wan ${UNIFI_USG} WanDown "No load balance" 1
+    /usr/local/bin/alerta-notify Hardware unifi-wan ${UNIFI_USG} WanDown "No load balance" 1
     exit 0
 fi
 
@@ -18,7 +13,7 @@ wan1_status=$(echo ${statuses} | awk '{print $1;}')
 wan2_status=$(echo ${statuses} | awk '{print $2;}')
 
 if [ "${wan1_status}" != "active" ] || [ "${wan2_status}" != "active" ]; then
-    /usr/local/bin/admin-notifier $1 Hardware unifi-wan ${UNIFI_USG} WanDown   "wan1 is ${wan1_status}, wan2 is ${wan2_status}" 1
+    /usr/local/bin/alerta-notify Hardware unifi-wan ${UNIFI_USG} WanDown   "wan1 is ${wan1_status}, wan2 is ${wan2_status}" 1
 else
-    /usr/local/bin/admin-notifier $1 Hardware unifi-wan ${UNIFI_USG} WanDownOK "Both wans are active" 1
+    /usr/local/bin/alerta-notify Hardware unifi-wan ${UNIFI_USG} WanDownOK "Both wans are active" 1
 fi

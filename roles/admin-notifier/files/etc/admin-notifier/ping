@@ -1,8 +1,3 @@
 #! /bin/bash
 
-if [ $# -ne 0 ]; then
-    echo "usage: ping"
-    exit 1
-fi
-
-/usr/local/bin/admin-notifier alerta System os $(hostname) heartbeat "" 0
+/usr/local/bin/alerta-notify System os $(hostname) heartbeat "" 0

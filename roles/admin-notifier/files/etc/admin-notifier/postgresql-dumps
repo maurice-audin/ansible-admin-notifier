@@ -1,10 +1,5 @@
 #! /bin/bash
 
-if [ $# -ne 1 ]; then
-    echo "usage: postgresql-dumps NOTIFICATION_SERVICE"
-    exit 1
-fi
-
 FAILED=""
 cd /tmp
 for DB in $(sudo -u postgres psql -t -c 'SELECT datname FROM pg_database'); do
@@ -17,7 +12,7 @@ for DB in $(sudo -u postgres psql -t -c 'SELECT datname FROM pg_database'); do
 done
 
 if [ -z ${FAILED} ]; then
-    /usr/local/bin/admin-notifier $1 Database postgresql $(hostname) PGMissingDumpOK "All databases dumped" 1
+    /usr/local/bin/alerta-notify Database postgresql $(hostname) PGMissingDumpOK "All databases dumped" 1
 else
-    /usr/local/bin/admin-notifier $1 Database postgresql $(hostname) PGMissingDump   "Missing databases dump: ${FAILED}"
+    /usr/local/bin/alerta-notify Database postgresql $(hostname) PGMissingDump   "Missing databases dump: ${FAILED}"
 fi

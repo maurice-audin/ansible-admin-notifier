@@ -1,0 +1,9 @@
+[Unit]
+Description=Check a list of snapshots and inform alerta if any is missing
+
+[Service]
+Type=oneshot
+ExecStart=/etc/admin-notifier/snapshots
+
+[Install]
+WantedBy=multi-user.target

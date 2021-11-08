@@ -1,10 +1,5 @@
 #! /bin/bash
 
-if [ $# -ne 1 ]; then
-    echo "usage: megacli NOTIFICATION_SERVICE"
-    exit 1
-fi
-
 [ -e /usr/sbin/megacli ] || exit 0
 
 PD_FAILED=""
@@ -32,9 +27,9 @@ megacli -PDList -aALL -NoLog | awk '
     fi
 done
 if [ -z ${PD_FAILED} ]; then
-    /usr/local/bin/admin-notifier $1 Hardware raid $(hostname) MegacliPDErrorOK  "All physical disks online" 1
+    /usr/local/bin/alerta-notify Hardware raid $(hostname) MegacliPDErrorOK  "All physical disks online" 1
 else
-    /usr/local/bin/admin-notifier $1 Hardware raid $(hostname) MegacliPDError    "Physical disks falty: ${PD_FAILED}" 1
+    /usr/local/bin/alerta-notify Hardware raid $(hostname) MegacliPDError    "Physical disks falty: ${PD_FAILED}" 1
 fi
 
 LD_FAILED=""
@@ -59,7 +54,7 @@ megacli -LDInfo -Lall -aALL -NoLog | awk '
     fi
 done
 if [ -z ${LD_FAILED} ]; then
-    /usr/local/bin/admin-notifier $1 Hardware raid $(hostname) MegacliLDErrorOK  "All logical disks online" 1
+    /usr/local/bin/alerta-notify Hardware raid $(hostname) MegacliLDErrorOK  "All logical disks online" 1
 else
-    /usr/local/bin/admin-notifier $1 Hardware raid $(hostname) MegacliLDError    "Logical disks falty: ${LD_FAILED}" 1
+    /usr/local/bin/alerta-notify Hardware raid $(hostname) MegacliLDError    "Logical disks falty: ${LD_FAILED}" 1
 fi

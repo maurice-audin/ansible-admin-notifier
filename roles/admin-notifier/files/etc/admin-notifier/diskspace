@@ -1,10 +1,5 @@
 #! /bin/bash
 
-if [ $# -ne 1 ]; then
-    echo "usage: diskspace NOTIFICATION_SERVICE"
-    exit 1
-fi
-
 FAILED80=""
 FAILED90=""
 df -lhT -x tmpfs -x devtmpfs | grep -v "^Filesystem" \
@@ -19,11 +14,11 @@ df -lhT -x tmpfs -x devtmpfs | grep -v "^Filesystem" \
           fi
 done
 if [ -z ${FAILED80} ] && [ -z ${FAILED90} ]; then
-    /usr/local/bin/admin-notifier $1 System os $(hostname) DiskspaceCriticalOK "All disks below 80%" 0
+    /usr/local/bin/alerta-notify System os $(hostname) DiskspaceCriticalOK "All disks below 80%" 0
 elif [ -z ${FAILED90} ]; then
-    /usr/local/bin/admin-notifier $1 System os $(hostname) DiskspaceCritical   "Disks above 80%: ${FAILED80}" 0
+    /usr/local/bin/alerta-notify System os $(hostname) DiskspaceCritical   "Disks above 80%: ${FAILED80}" 0
 elif [ -z ${FAILED80} ]; then
-    /usr/local/bin/admin-notifier $1 System os $(hostname) DiskspaceCritical   "Disks above 90%: ${FAILED90}" 0
+    /usr/local/bin/alerta-notify System os $(hostname) DiskspaceCritical   "Disks above 90%: ${FAILED90}" 0
 else
-    /usr/local/bin/admin-notifier $1 System os $(hostname) DiskspaceCritical   "Disks above 90%: ${FAILED90}, Disks above 80%: ${FAILED80}" 0
+    /usr/local/bin/alerta-notify System os $(hostname) DiskspaceCritical   "Disks above 90%: ${FAILED90}, Disks above 80%: ${FAILED80}" 0
 fi

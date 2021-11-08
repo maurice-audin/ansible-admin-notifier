@@ -1,10 +1,5 @@
 #! /bin/bash
 
-if [ $# -ne 1 ]; then
-    echo "usage: temperature NOTIFICATION_SERVICE"
-    exit 1
-fi
-
 FAILED=""
 for zone in /sys/class/thermal/thermal_zone*; do
     # No trip point
@@ -25,7 +20,7 @@ for zone in /sys/class/thermal/thermal_zone*; do
 done
 
 if [ -z ${FAILED} ]; then
-    /usr/local/bin/admin-notifier $1 Hardware sensors $(hostname) TemperatureCriticalOK "All temperatures below 3/4 of critical" 3
+    /usr/local/bin/alerta-notify Hardware sensors $(hostname) TemperatureCriticalOK "All temperatures below 3/4 of critical" 3
 else
-    /usr/local/bin/admin-notifier $1 Hardware sensors $(hostname) TemperatureCritical   "Temperatures above 3/4 of critical, check zones: ${FAILED}" 3
+    /usr/local/bin/alerta-notify Hardware sensors $(hostname) TemperatureCritical   "Temperatures above 3/4 of critical, check zones: ${FAILED}" 3
 fi

@@ -1,0 +1,8 @@
+[Unit]
+Description=Check new packages and inform alerta every day at 10am.
+
+[Timer]
+OnCalendar=*-*-* 10:00:00
+
+[Install]
+WantedBy=timers.target

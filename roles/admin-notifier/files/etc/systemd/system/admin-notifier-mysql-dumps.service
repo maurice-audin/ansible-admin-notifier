@@ -1,0 +1,9 @@
+[Unit]
+Description=Check mysql dumps and inform alerta if any is missing
+
+[Service]
+Type=oneshot
+ExecStart=/etc/admin-notifier/mysql-dumps
+
+[Install]
+WantedBy=multi-user.target
