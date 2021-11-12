@@ -15,7 +15,7 @@ admin-notifier:
       monitor_ping:      False
   vars:
     alerta_url:          http://alerta.home.lan
-    alerta_key:          my_alerta_key
+    alerta_admin_key:    my_alerta_key
     monitor_apt:         True
     monitor_diskspace:   True
     monitor_kernel:      True

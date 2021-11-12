@@ -7,13 +7,54 @@
     assert:
       that:
         - alerta_url is defined
-        - alerta_key is defined
 
 - name: Install required packages
   apt:
     pkg:
       - jq
     state: present
+
+- name: Check if host has an alerta key
+  uri:
+    url: "{{ alerta_url }}/api/keys?text={{ inventory_hostname }}"
+    return_content: yes
+    headers:
+      Authorization: "Key {{ alerta_admin_key }}"
+  register: keys
+  check_mode: no
+
+- set_fact: host_alerta_key="{{ keys.json['keys'][0]['key'] }}"
+  when: keys.json.total != 0
+
+- block:
+  - name: Create host alerta key
+    uri:
+      url: "{{ alerta_url }}/api/key"
+      method: POST
+      return_content: yes
+      body_format: json
+      body:
+        user: bot
+        scopes: ["write:heartbeats", "write:alerts", "read"]
+        text: "{{ inventory_hostname }}"
+      headers:
+        Authorization: "Key {{ alerta_admin_key }}"
+      status_code: 201
+    check_mode: no
+
+  - name: Check if host has an alerta key again
+    uri:
+      url: "{{ alerta_url }}/api/keys?text={{ inventory_hostname }}"
+      return_content: yes
+      headers:
+        Authorization: "Key {{ alerta_admin_key }}"
+    register: keys
+    check_mode: no
+
+  - name: Set mykey variable
+    set_fact: host_alerta_key="{{ keys.json['keys'][0]['key'] }}"
+
+  when: host_alerta_key is not defined
 
 - name: Create /etc/default/admin-notifier
   template:
